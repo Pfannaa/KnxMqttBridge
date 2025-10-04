@@ -45,6 +45,12 @@ services:
       - ./grafana-data:/var/lib/grafana
     restart: unless-stopped
 
+  knxmqttbridge:
+    image: ghcr.io/pfannaa/knxmqttbridge:0.1
+    container_name: knxmqttbridge
+    network_mode: host
+    restart: unless-stopped
+
 volumes:
   mosquitto-data:
   influxdb-data:
