@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<GroupAddress-Export xmlns="http://knx.org/xml/ga-export/01">
+  <GroupRange Name="Zentral" RangeStart="2048" RangeEnd="4095">
+    <GroupRange Name="Datum Zeit" RangeStart="2048" RangeEnd="2303">
+      <GroupAddress Name="Systemzeit wr" Address="1/0/1" DPTs="DPST-10-1" />
+      <GroupAddress Name="Systemdatum wr" Address="1/0/2" DPTs="DPST-11-1" />
+      <GroupAddress Name="Systemdatumzeit wr" Address="1/0/3" />
+      <GroupAddress Name="Systemzeit Text wr" Address="1/0/4" />
+      <GroupAddress Name="Systemdatum Text wr" Address="1/0/5" />
+    </GroupRange>
+    <GroupRange Name="Schalten" RangeStart="2304" RangeEnd="2559">
+      <GroupAddress Name="Zentral Licht s" Address="1/1/1" DPTs="DPST-1-1" />
+      <GroupAddress Name="Zentral Tag Nacht s" Address="1/1/2" DPTs="DPST-1-24" />
+    </GroupRange>
+    <GroupRange Name="Stati" RangeStart="2560" RangeEnd="2815" />
+    <GroupRange Name="Visualisierung" RangeStart="2816" RangeEnd="3071" />
+  </GroupRange>
+  <GroupRange Name="Schalten Dimmen" RangeStart="4096" RangeEnd="6143">
+    <GroupRange Name="Schalten Dimmen" RangeStart="4352" RangeEnd="4607">
+      <GroupAddress Name="Gang Eingang Licht s" Address="2/1/1" DPTs="DPST-1-1" />
+      <GroupAddress Name="Gang Eingang Licht d" Address="2/1/2" DPTs="DPST-3-7" />
+      <GroupAddress Name="Gang Eingang Licht w" Address="2/1/3" DPTs="DPST-5-1" />
+      <GroupAddress Name="Gang Eingang Licht wr" Address="2/1/4" DPTs="DPST-5-1" />
+      <GroupAddress Name="Gang Eingang Licht sr" Address="2/1/5" DPTs="DPST-1-1" />
+      <GroupAddress Name="Gang Licht s" Address="2/1/11" DPTs="DPST-1-1" />
+      <GroupAddress Name="Gang Licht d" Address="2/1/12" DPTs="DPST-3-7" />
+      <GroupAddress Name="Gang Licht w" Address="2/1/13" DPTs="DPST-5-1" />
+      <GroupAddress Name="Gang Licht wr" Address="2/1/14" DPTs="DPST-5-1" />
+      <GroupAddress Name="Gang Licht sr" Address="2/1/15" DPTs="DPST-1-1" />
+      <GroupAddress Name="Eltern Licht Kasten s" Address="2/1/21" DPTs="DPST-1-1" />
+      <GroupAddress Name="Eltern Licht Kasten d" Address="2/1/22" DPTs="DPST-3-7" />
+      <GroupAddress Name="Eltern Licht Kasten w" Address="2/1/23" DPTs="DPST-5-1" />
+      <GroupAddress Name="Eltern Licht Kasten wr" Address="2/1/24" DPTs="DPST-5-1" />
+      <GroupAddress Name="Eltern Licht Kasten sr" Address="2/1/25" DPTs="DPST-1-1" />
+      <GroupAddress Name="Eltern Licht Bett s" Address="2/1/31" DPTs="DPST-1-1" />
+      <GroupAddress Name="Eltern Licht Bett d" Address="2/1/32" DPTs="DPST-3-7" />
+      <GroupAddress Name="Eltern Licht Bett w" Address="2/1/33" DPTs="DPST-5-1" />
+      <GroupAddress Name="Eltern Licht Bett wr" Address="2/1/34" DPTs="DPST-5-1" />
+      <GroupAddress Name="Eltern Licht Bett sr" Address="2/1/35" DPTs="DPST-1-1" />
+      <GroupAddress Name="Kind Decke Licht s" Address="2/1/41" DPTs="DPST-1-1" />
+      <GroupAddress Name="Kind Decke Licht d" Address="2/1/42" DPTs="DPST-3-7" />
+      <GroupAddress Name="Kind Decke Licht w" Address="2/1/43" DPTs="DPST-5-1" />
+      <GroupAddress Name="Kind Decke Licht wr" Address="2/1/44" DPTs="DPST-5-1" />
+      <GroupAddress Name="Kind Decke Licht sr" Address="2/1/45" DPTs="DPST-1-1" />
+      <GroupAddress Name="Bad Decke Licht s" Address="2/1/51" DPTs="DPST-1-1" />
+      <GroupAddress Name="Bad Decke Licht d" Address="2/1/52" />
+      <GroupAddress Name="Bad Decke Licht w" Address="2/1/53" />
+      <GroupAddress Name="Bad Decke Licht wr" Address="2/1/54" />
+      <GroupAddress Name="Bad Decke Licht sr" Address="2/1/55" DPTs="DPST-1-1" />
+      <GroupAddress Name="Bad Spiegelschrank Licht s" Address="2/1/61" DPTs="DPST-1-1" />
+      <GroupAddress Name="Bad Spiegelschrank Licht d" Address="2/1/62" />
+      <GroupAddress Name="Bad Spiegelschrank Licht w" Address="2/1/63" />
+      <GroupAddress Name="Bad Spiegelschrank Licht wr" Address="2/1/64" />
+      <GroupAddress Name="Bad Spiegelschrank Licht sr" Address="2/1/65" DPTs="DPST-1-1" />
+      <GroupAddress Name="Büro Decke Licht s" Address="2/1/71" DPTs="DPST-1-1" />
+      <GroupAddress Name="Büro Decke Licht d" Address="2/1/72" />
+      <GroupAddress Name="Büro Decke Licht w" Address="2/1/73" />
+      <GroupAddress Name="Büro Decke Licht wr" Address="2/1/74" />
+      <GroupAddress Name="Büro Decke Licht sr" Address="2/1/75" DPTs="DPST-1-11" />
+      <GroupAddress Name="Küche Oberschrank Licht s" Address="2/1/81" DPTs="DPST-1-1" />
+      <GroupAddress Name="Küche Oberschrank Licht d" Address="2/1/82" />
+      <GroupAddress Name="Küche Oberschrank Licht w" Address="2/1/83" />
+      <GroupAddress Name="Küche Oberschrank Licht wr" Address="2/1/84" />
+      <GroupAddress Name="Küche Oberschrank Licht sr" Address="2/1/85" DPTs="DPST-1-1" />
+      <GroupAddress Name="Küche Decke Licht s" Address="2/1/91" DPTs="DPST-1-1" />
+      <GroupAddress Name="Küche Decke Licht d" Address="2/1/92" DPTs="DPST-3-7" />
+      <GroupAddress Name="Küche Decke Licht w" Address="2/1/93" DPTs="DPST-5-1" />
+      <GroupAddress Name="Küche Decke Licht wr" Address="2/1/94" DPTs="DPST-5-1" Security="Off" />
+      <GroupAddress Name="Küche Decke Licht sr" Address="2/1/95" DPTs="DPST-1-1" />
+      <GroupAddress Name="Essen Decke Licht s" Address="2/1/101" DPTs="DPST-1-1" />
+      <GroupAddress Name="Essen Decke Licht d" Address="2/1/102" DPTs="DPST-3-7" />
+      <GroupAddress Name="Essen Decke Licht w" Address="2/1/103" DPTs="DPST-5-1" />
+      <GroupAddress Name="Essen Decke Licht wr" Address="2/1/104" DPTs="DPST-5-1" Security="Off" />
+      <GroupAddress Name="Essen Decke Licht sr" Address="2/1/105" DPTs="DPST-1-1" />
+      <GroupAddress Name="Wohnen Decke Licht s" Address="2/1/111" DPTs="DPST-1-1" />
+      <GroupAddress Name="Wohnen Decke Licht d" Address="2/1/112" DPTs="DPST-3-7" />
+      <GroupAddress Name="Wohnen Decke Licht w" Address="2/1/113" DPTs="DPST-5-1" />
+      <GroupAddress Name="Wohnen Decke Licht wr" Address="2/1/114" DPTs="DPST-5-1" Security="Off" />
+      <GroupAddress Name="Wohnen Decke Licht sr" Address="2/1/115" DPTs="DPST-1-1" />
+      <GroupAddress Name="Wohnzimmer Zentral s" Address="2/1/121" DPTs="DPST-1-1" />
+      <GroupAddress Name="Wohnzimmer Zentral d" Address="2/1/122" DPTs="DPST-3-7" />
+      <GroupAddress Name="Wohnzimmer Zentral w" Address="2/1/123" DPTs="DPST-5-1" />
+      <GroupAddress Name="Wohnzimmer Zentral wr" Address="2/1/124" DPTs="DPST-5-1" />
+      <GroupAddress Name="Wohnzimmer Zentral sr" Address="2/1/125" DPTs="DPST-1-1" />
+      <GroupAddress Name="Wohnwand s" Address="2/1/131" DPTs="DPST-1-1" />
+      <GroupAddress Name="Wohnwand d" Address="2/1/132" DPTs="DPST-3-7" />
+      <GroupAddress Name="Wohnwand w" Address="2/1/133" />
+      <GroupAddress Name="Wohnwand wr" Address="2/1/134" DPTs="DPST-5-1" />
+      <GroupAddress Name="Wohnwand sr" Address="2/1/135" />
+    </GroupRange>
+  </GroupRange>
+  <GroupRange Name="Werte" RangeStart="6144" RangeEnd="8191">
+    <GroupRange Name="Temperatur" RangeStart="6400" RangeEnd="6655">
+      <GroupAddress Name="Gang bei Eingang wr" Address="3/1/1" DPTs="DPST-9-1" />
+      <GroupAddress Name="Gang bei Kinderzimmer wr" Address="3/1/2" DPTs="DPST-9-1" />
+      <GroupAddress Name="Schlafzimmer bei Türe wr" Address="3/1/3" DPTs="DPST-9-1" />
+      <GroupAddress Name="Schlafzimmer bei Bett links wr" Address="3/1/4" DPTs="DPST-9-1" />
+      <GroupAddress Name="Schlafzimmer bei Bett rechts wr" Address="3/1/5" DPTs="DPST-9-1" />
+      <GroupAddress Name="Kinderzimmer bei Türe wr" Address="3/1/6" DPTs="DPST-9-1" />
+      <GroupAddress Name="Badezimmer bei Türe wr" Address="3/1/7" DPTs="DPST-9-1" />
+      <GroupAddress Name="Büro bei Türe wr" Address="3/1/8" DPTs="DPST-9-1" />
+      <GroupAddress Name="Küche bei Waschbecken wr" Address="3/1/9" DPTs="DPST-9-1" />
+      <GroupAddress Name="Wohnzimmer bei Büro 1 wr" Address="3/1/10" DPTs="DPST-9-1" />
+      <GroupAddress Name="Wohnzimmer bei Büro 2 wr" Address="3/1/11" DPTs="DPST-9-1" />
+    </GroupRange>
+    <GroupRange Name="Logik" RangeStart="6656" RangeEnd="6911" />
+  </GroupRange>
+  <GroupRange Name="Szenen und Effekte" RangeStart="8192" RangeEnd="10239">
+    <GroupRange Name="Szenen" RangeStart="8448" RangeEnd="8703">
+      <GroupAddress Name="Szene Lichter" Address="4/1/1" DPTs="DPST-18-1" />
+    </GroupRange>
+  </GroupRange>
+  <GroupRange Name="Test" RangeStart="18432" RangeEnd="20479" />
+</GroupAddress-Export>

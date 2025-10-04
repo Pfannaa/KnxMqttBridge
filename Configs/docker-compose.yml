@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: docker.io/eclipse-mosquitto:latest
+    container_name: mosquitto
+    network_mode: host
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+
+  influxdb:
+    image: docker.io/influxdb:2.7
+    container_name: influxdb
+    network_mode: host
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=administrator
+      - DOCKER_INFLUXDB_INIT_PASSWORD=administrator
+      - DOCKER_INFLUXDB_INIT_ORG=knx
+      - DOCKER_INFLUXDB_INIT_BUCKET=knx-data
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=token
+    volumes:
+      - ./influxdb-data:/var/lib/influxdb2
+    restart: unless-stopped
+
+  telegraf:
+    image: docker.io/telegraf:latest
+    container_name: telegraf
+    network_mode: host
+    privileged: true
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    restart: unless-stopped
+
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    container_name: grafana
+    network_mode: host
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+  knxmqttbridge:
+    image: ghcr.io/pfannaa/knxmqttbridge:0.1
+    container_name: knxmqttbridge
+    network_mode: host
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
+  influxdb-data:
+  grafana-data:
