@@ -95,7 +95,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /Licht/)\n  |> filter(fn: (r) => r[\"Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /Licht/)\n  |> filter(fn: (r) => r[\"Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Name\"])",
           "refId": "A"
         }
       ],
@@ -174,7 +174,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-9-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/)\n  |> last()\n  |> group(columns: [\"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-9-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/)\n  |> last()\n  |> group(columns: [\"Name\"])",
           "refId": "A"
         }
       ],
@@ -507,7 +507,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/ or r[\"Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Name\", \"Address\", \"Category\", \"DataPointType\"])\n  |> sort(columns: [\"Category\", \"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/ or r[\"Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Name\", \"Address\", \"Category\", \"DataPointType\"])\n  |> sort(columns: [\"Category\", \"Name\"])",
           "refId": "A"
         }
       ],
