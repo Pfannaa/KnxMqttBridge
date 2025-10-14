@@ -32,6 +32,7 @@ namespace KnxMqttBridge
             builder.Services.AddHostedService<Worker>();
             builder.Services.AddSingleton<IKnxService, KnxService>();
             builder.Services.AddSingleton<IMqttService, MqttService>();
+            builder.Services.AddSingleton<IKnxValueEncoder, KnxValueEncoder>();
 
             var host = builder.Build();
             host.Run();
