@@ -14,6 +14,7 @@ namespace KnxMqttBridge.Services
         private bool _disposed;
 
         public bool IsConnected => _mqttClient?.IsConnected ?? false;
+        public event Func<MqttApplicationMessageReceivedEventArgs, Task> MessageReceived;
 
         public MqttService(IOptions<MqttConfiguration> config, ILogger<MqttService> logger)
         {
@@ -25,6 +26,7 @@ namespace KnxMqttBridge.Services
 
             _mqttClient.DisconnectedAsync += OnDisconnectedAsync;
             _mqttClient.ConnectedAsync += OnConnectedAsync;
+            _mqttClient.ApplicationMessageReceivedAsync += OnMessageReceivedAsync;
         }
 
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
@@ -40,7 +42,7 @@ namespace KnxMqttBridge.Services
                 var cfg = _config.Value;
                 var optionsBuilder = new MqttClientOptionsBuilder()
                     .WithTcpServer(cfg.BrokerHost, cfg.BrokerPort)
-                    .WithClientId(cfg.ClientId)
+                    .WithClientId(cfg.ClientId + "-" + Guid.NewGuid())
                     .WithCleanSession(cfg.CleanSession)
                     .WithKeepAlivePeriod(TimeSpan.FromSeconds(cfg.KeepAlivePeriod));
 
@@ -130,6 +132,44 @@ namespace KnxMqttBridge.Services
                     _logger.LogError(ex, "Failed to reconnect to MQTT broker");
                 }
             }
+        }
+
+        public async Task SubscribeAsync(string topic, CancellationToken cancellationToken = default)
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("MQTT client is not connected");
+            }
+
+            var fullTopic = string.IsNullOrEmpty(_config.Value.TopicPrefix) ? topic : $"{_config.Value.TopicPrefix}/{topic}";
+
+            _logger.LogInformation("Subscribing to MQTT topic: {Topic}", fullTopic);
+
+            var subscribeOptions = new MqttClientSubscribeOptionsBuilder()
+                .WithTopicFilter(fullTopic)
+                .Build();
+
+            var result = await _mqttClient.SubscribeAsync(subscribeOptions, cancellationToken);
+
+            foreach (var item in result.Items)
+            {
+                if (item.ResultCode == MqttClientSubscribeResultCode.GrantedQoS0 ||
+                    item.ResultCode == MqttClientSubscribeResultCode.GrantedQoS1 ||
+                    item.ResultCode == MqttClientSubscribeResultCode.GrantedQoS2)
+                {
+                    _logger.LogInformation("Successfully subscribed to {Topic}", item.TopicFilter.Topic);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to subscribe to {Topic}. Result: {Result}", item.TopicFilter.Topic, item.ResultCode);
+                }
+            }
+        }
+
+        private Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args)
+        {
+            _logger.LogDebug("Received message on topic: {Topic}", args.ApplicationMessage.Topic);
+            return MessageReceived?.Invoke(args) ?? Task.CompletedTask;
         }
 
         public void Dispose()
