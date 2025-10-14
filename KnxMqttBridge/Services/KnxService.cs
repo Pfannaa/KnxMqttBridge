@@ -14,64 +14,46 @@ namespace KnxMqttBridge.Services
         public event EventHandler<GroupEventArgs> GroupMessageReceived;
 
         private readonly IOptions<GroupAddressInformation> _groupAddressInformation;
-        private readonly IOptions<KnxConfiguration> _knxConfiguration;
         private KnxBus _bus;
 
-        public KnxService(
-            IOptions<GroupAddressInformation> groupAddressInformation,
-            IOptions<KnxConfiguration> knxConfiguration)
+        // X1 IP 192.168.1.169
+
+        public KnxService(IOptions<GroupAddressInformation> groupAddressInformation)
         {
             _groupAddressInformation = groupAddressInformation;
-            _knxConfiguration = knxConfiguration;
         }
 
         public async Task StartListening(CancellationToken cancellationToken)
         {
-            ConnectorParameters connectorParameters;
-            var config = _knxConfiguration.Value;
-
-            // Check if manual configuration is provided
-            if (!config.UseAutoDiscovery && !string.IsNullOrEmpty(config.GatewayIp))
+            var ipDiscovery = new IpDeviceDiscovery
             {
-                // Use manual configuration
-                var connectionString = $"ip:{config.GatewayIp}:{config.GatewayPort}";
-                Console.WriteLine($"[KnxService] Using manual configuration: {connectionString}");
-                connectorParameters = ConnectorParameters.FromConnectionString(connectionString);
-            }
-            else
+                Timeout = TimeSpan.FromSeconds(1)
+            };
+            var ipDeviceDiscoveryTask = ipDiscovery.DiscoverAsync(cancellationToken);
+
+            var ipDevices = await ipDeviceDiscoveryTask
+                .Where(_ => _.Supports(ServiceFamily.Tunneling, 1), cancellationToken)
+                .ToArray(CancellationToken.None);
+
+            List<string> connectionStrings = new List<string>();
+
+            if (ipDevices.Any())
             {
-                // Use auto-discovery
-                Console.WriteLine("[KnxService] Using auto-discovery to find KNX/IP gateway...");
-
-                var ipDiscovery = new IpDeviceDiscovery
+                foreach (var tunnelingServer in ipDevices.SelectMany(ipDevice => ipDevice.GetTunnelingConnections()))
                 {
-                    Timeout = TimeSpan.FromSeconds(1)
-                };
-                var ipDeviceDiscoveryTask = ipDiscovery.DiscoverAsync(cancellationToken);
-
-                var ipDevices = await ipDeviceDiscoveryTask
-                    .Where(_ => _.Supports(ServiceFamily.Tunneling, 1), cancellationToken)
-                    .ToArray(CancellationToken.None);
-
-                List<string> connectionStrings = new List<string>();
-
-                if (ipDevices.Any())
-                {
-                    foreach (var tunnelingServer in ipDevices.SelectMany(ipDevice => ipDevice.GetTunnelingConnections()))
-                    {
-                        connectionStrings.Add(tunnelingServer.ToConnectionString());
-                    }
+                    connectionStrings.Add(tunnelingServer.ToConnectionString());
                 }
-
-                if (connectionStrings.Count < 1)
-                {
-                    Console.WriteLine("[KnxService] Failed to find valid connection string via auto-discovery. Exiting...");
-                    Environment.Exit(1);
-                }
-
-                Console.WriteLine($"[KnxService] Discovered connection string: {connectionStrings[0]}");
-                connectorParameters = ConnectorParameters.FromConnectionString(connectionStrings[0]);
             }
+
+            if (connectionStrings.Count < 1)
+            {
+                Console.WriteLine("Failed to find valid connection string. Exiting...");
+                Environment.Exit(1);
+            }
+
+            var connectorParameters = ConnectorParameters.FromConnectionString(connectionStrings[0]);
+
+            Console.WriteLine($"[KnxService] Using connection string: {connectionStrings[0]}");
 
             _bus = new KnxBus(connectorParameters);
             await _bus.ConnectAsync(cancellationToken);
