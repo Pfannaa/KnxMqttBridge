@@ -90,15 +90,25 @@ namespace KnxMqttBridge.Services
                     groupValue = new GroupValue(byteArray);
                     Console.WriteLine($"[KnxService] Writing bytes to {groupAddress}: {BitConverter.ToString(byteArray)}");
                 }
+                else if (value is ValueTuple<byte, int> fourBitValue)
+                {
+                    // For 4-bit values like DPST-3-7, use the special constructor with sizeInBit parameter
+                    groupValue = new GroupValue(fourBitValue.Item1, fourBitValue.Item2);
+                    Console.WriteLine($"[KnxService] Writing {fourBitValue.Item2}-bit value to {groupAddress}: {fourBitValue.Item1} (0x{fourBitValue.Item1:X2})");
+                }
                 else if (value is byte byteValue)
                 {
-                    groupValue = new GroupValue(new[] { byteValue });
-                    Console.WriteLine($"[KnxService] Writing byte to {groupAddress}: {byteValue}");
+                    // Regular 8-bit byte value
+                    groupValue = new GroupValue(byteValue);
+                    Console.WriteLine($"[KnxService] Writing 8-bit byte to {groupAddress}: {byteValue} (0x{byteValue:X2})");
                 }
                 else
                 {
                     throw new ArgumentException($"Unsupported value type: {value.GetType().Name}");
                 }
+
+                Console.WriteLine($"[KnxService] GroupValue.Value property: {BitConverter.ToString(groupValue.Value)}");
+                Console.WriteLine($"[KnxService] GroupValue.Value length: {groupValue.Value.Length}");
 
                 var result = await _bus.WriteGroupValueAsync(parsedAddress, groupValue, cancellationToken: cancellationToken);
 
@@ -106,7 +116,9 @@ namespace KnxMqttBridge.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[KnxService] Write failed: {ex.Message}");
+                Console.WriteLine($"[KnxService] Write failed with exception: {ex.GetType().Name}");
+                Console.WriteLine($"[KnxService] Error message: {ex.Message}");
+                Console.WriteLine($"[KnxService] Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
