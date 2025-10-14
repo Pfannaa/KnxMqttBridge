@@ -6,9 +6,9 @@ services:
     container_name: mosquitto
     network_mode: host
     volumes:
-      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./mosquitto/data:/mosquitto/data
-      - ./mosquitto/log:/mosquitto/log
+      - ${HOME}/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ${HOME}/mosquitto/data:/mosquitto/data
+      - ${HOME}/mosquitto/log:/mosquitto/log
     restart: unless-stopped
 
   influxdb:
@@ -23,7 +23,7 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=knx-data
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=token
     volumes:
-      - ./influxdb-data:/var/lib/influxdb2
+      - ${HOME}/influxdb-data:/var/lib/influxdb2
     restart: unless-stopped
 
   telegraf:
@@ -32,7 +32,7 @@ services:
     network_mode: host
     privileged: true
     volumes:
-      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ${HOME}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     restart: unless-stopped
 
   grafana:
@@ -42,14 +42,23 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - ./grafana-data:/var/lib/grafana
+      - ${HOME}/grafana-data:/var/lib/grafana
     restart: unless-stopped
 
   knxmqttbridge:
-    image: ghcr.io/pfannaa/knxmqttbridge:0.2
+    image: ghcr.io/pfannaa/knxmqttbridge:0.3
     container_name: knxmqttbridge
     network_mode: host
     restart: unless-stopped
+    environment:
+      environment:
+      # KNX Configuration
+      - KnxConfig__UseAutoDiscovery=true
+      # MQTT Configuration
+      - Mqtt__BrokerHost=192.168.1.10
+      - Mqtt__BrokerPort=1883
+    volumes:
+      - ${HOME}/KnxMqttBridge/GroupAddresses.xml:/app/GroupAddresses.xml:ro
 
 volumes:
   mosquitto-data:
