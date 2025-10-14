@@ -2,6 +2,7 @@ using System.Xml.Serialization;
 using KnxMqttBridge.Infrastructure;
 using KnxMqttBridge.Services;
 using KnxMqttBridge.Services.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace KnxMqttBridge
 {
@@ -11,11 +12,17 @@ namespace KnxMqttBridge
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            // In Program.cs
+            // Configure KnxConfiguration from appsettings.json and environment variables
+            builder.Services.Configure<KnxConfiguration>(builder.Configuration.GetSection("KnxConfig"));
+
+            // Configure MQTT from appsettings.json and environment variables
+            builder.Services.Configure<MqttConfiguration>(builder.Configuration.GetSection("Mqtt"));
+
+            // Configure GroupAddressInformation from XML file
             builder.Services.AddOptions<GroupAddressInformation>()
-                .Configure(config =>
+                .Configure<IOptions<KnxConfiguration>>((config, knxConfig) =>
                 {
-                    var xmlPath = builder.Configuration["KnxConfig:XmlPath"] ?? "GroupAddresses.xml";
+                    var xmlPath = knxConfig.Value.XmlPath ?? "GroupAddresses.xml";
 
                     var serializer = new XmlSerializer(typeof(GroupAddressExport));
                     using var fileStream = File.OpenRead(xmlPath);
@@ -26,8 +33,6 @@ namespace KnxMqttBridge
 
                     config.GroupAddresses = simplified.GroupAddresses;
                 });
-
-            builder.Services.Configure<MqttConfiguration>(builder.Configuration.GetSection("Mqtt"));
 
             builder.Services.AddHostedService<Worker>();
             builder.Services.AddSingleton<IKnxService, KnxService>();
