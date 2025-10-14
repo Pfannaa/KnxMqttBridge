@@ -14,6 +14,7 @@ namespace KnxMqttBridge.Services
         public event EventHandler<GroupEventArgs> GroupMessageReceived;
 
         private readonly IOptions<GroupAddressInformation> _groupAddressInformation;
+        private KnxBus _bus;
 
         // X1 IP 192.168.1.169
 
@@ -52,11 +53,74 @@ namespace KnxMqttBridge.Services
 
             var connectorParameters = ConnectorParameters.FromConnectionString(connectionStrings[0]);
 
-            KnxBus bus = new KnxBus(connectorParameters);
-            await bus.ConnectAsync(cancellationToken);
+            Console.WriteLine($"[KnxService] Using connection string: {connectionStrings[0]}");
 
-            bus.GroupMessageReceived += (sender, args) =>
+            _bus = new KnxBus(connectorParameters);
+            await _bus.ConnectAsync(cancellationToken);
+
+            Console.WriteLine($"[KnxService] Connected to KNX bus successfully");
+
+            _bus.GroupMessageReceived += (sender, args) =>
+            {
+                Console.WriteLine($"[KnxService] Received telegram - Dest: {args.DestinationAddress}, Source: {args.SourceAddress}, Type: {args.EventType}, Value: {BitConverter.ToString(args.Value.Value)}");
                 GroupMessageReceived?.Invoke(this, args);
+            };
+        }
+
+        public async Task WriteAsync(string groupAddress, object value, CancellationToken cancellationToken = default)
+        {
+            if (_bus == null)
+            {
+                throw new InvalidOperationException("KNX bus is not connected. Call StartListening first.");
+            }
+
+            try
+            {
+                var parsedAddress = GroupAddress.Parse(groupAddress);
+
+                // Create GroupValue based on the value type
+                GroupValue groupValue;
+                if (value is bool boolValue)
+                {
+                    groupValue = new GroupValue(boolValue);
+                    Console.WriteLine($"[KnxService] Writing bool to {groupAddress}: {boolValue}");
+                }
+                else if (value is byte[] byteArray)
+                {
+                    groupValue = new GroupValue(byteArray);
+                    Console.WriteLine($"[KnxService] Writing bytes to {groupAddress}: {BitConverter.ToString(byteArray)}");
+                }
+                else if (value is ValueTuple<byte, int> fourBitValue)
+                {
+                    // For 4-bit values like DPST-3-7, use the special constructor with sizeInBit parameter
+                    groupValue = new GroupValue(fourBitValue.Item1, fourBitValue.Item2);
+                    Console.WriteLine($"[KnxService] Writing {fourBitValue.Item2}-bit value to {groupAddress}: {fourBitValue.Item1} (0x{fourBitValue.Item1:X2})");
+                }
+                else if (value is byte byteValue)
+                {
+                    // Regular 8-bit byte value
+                    groupValue = new GroupValue(byteValue);
+                    Console.WriteLine($"[KnxService] Writing 8-bit byte to {groupAddress}: {byteValue} (0x{byteValue:X2})");
+                }
+                else
+                {
+                    throw new ArgumentException($"Unsupported value type: {value.GetType().Name}");
+                }
+
+                Console.WriteLine($"[KnxService] GroupValue.Value property: {BitConverter.ToString(groupValue.Value)}");
+                Console.WriteLine($"[KnxService] GroupValue.Value length: {groupValue.Value.Length}");
+
+                var result = await _bus.WriteGroupValueAsync(parsedAddress, groupValue, cancellationToken: cancellationToken);
+
+                Console.WriteLine($"[KnxService] Write completed successfully: {result}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[KnxService] Write failed with exception: {ex.GetType().Name}");
+                Console.WriteLine($"[KnxService] Error message: {ex.Message}");
+                Console.WriteLine($"[KnxService] Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
     }
 }
