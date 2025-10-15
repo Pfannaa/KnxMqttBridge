@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    uid: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: Flux
+      organization: knx
+      defaultBucket: knx-data
+      tlsSkipVerify: true
+    secureJsonData:
+      token: my-super-secret-token
+    editable: true
+    isDefault: true
