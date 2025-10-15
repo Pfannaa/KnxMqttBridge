@@ -11,6 +11,12 @@
 *.sln.docstates
 *.env
 
+# Claude Code
+.claude/
+
+# KNX Configuration
+GroupAddresses.xml
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using System.Text;
-using MQTTnet;
-using KnxMqttBridge.Infrastructure;
+﻿using KnxMqttBridge.Infrastructure;
 using KnxMqttBridge.Services.Abstractions;
+using Microsoft.Extensions.Options;
+using MQTTnet;
+using System.Text;
 
 namespace KnxMqttBridge.Services
 {
@@ -92,19 +92,27 @@ namespace KnxMqttBridge.Services
                 throw new InvalidOperationException("MQTT client is not connected");
             }
 
-            var fullTopic = string.IsNullOrEmpty(_config.Value.TopicPrefix) ? topic : $"{_config.Value.TopicPrefix}/{topic}";
-
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(fullTopic)
-                .WithPayload(payload)
-                .WithRetainFlag(retain)
-                .Build();
-
-            var result = await _mqttClient.PublishAsync(message, cancellationToken);
-
-            if (result.ReasonCode != MqttClientPublishReasonCode.Success)
+            try
             {
-                _logger.LogWarning("Failed to publish to {Topic}. Reason: {Reason}", fullTopic, result.ReasonCode);
+                var fullTopic = string.IsNullOrEmpty(_config.Value.TopicPrefix) ? topic : $"{_config.Value.TopicPrefix}/{topic}";
+
+                var message = new MqttApplicationMessageBuilder()
+                    .WithTopic(fullTopic)
+                    .WithPayload(payload)
+                    .WithRetainFlag(retain)
+                    .Build();
+
+                var result = await _mqttClient.PublishAsync(message, cancellationToken);
+
+                if (result.ReasonCode != MqttClientPublishReasonCode.Success)
+                {
+                    _logger.LogWarning("Failed to publish to {Topic}. Reason: {Reason}", fullTopic, result.ReasonCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error publishing message to topic: {Topic}", topic);
+                throw;
             }
         }
 
@@ -116,21 +124,28 @@ namespace KnxMqttBridge.Services
 
         private async Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs args)
         {
-            _logger.LogWarning("MQTT client disconnected. Reason: {Reason}", args.Reason);
-
-            if (!_disposed && args.Reason != MqttClientDisconnectReason.NormalDisconnection)
+            try
             {
-                _logger.LogInformation("Attempting to reconnect in 5 seconds...");
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                _logger.LogWarning("MQTT client disconnected. Reason: {Reason}", args.Reason);
 
-                try
+                if (!_disposed && args.Reason != MqttClientDisconnectReason.NormalDisconnection)
                 {
-                    await ConnectAsync();
+                    _logger.LogInformation("Attempting to reconnect in 5 seconds...");
+                    await Task.Delay(TimeSpan.FromSeconds(5), CancellationToken.None);
+
+                    try
+                    {
+                        await ConnectAsync(CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to reconnect to MQTT broker. Will retry on next disconnection.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to reconnect to MQTT broker");
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in MQTT disconnection handler");
             }
         }
 
@@ -166,10 +181,20 @@ namespace KnxMqttBridge.Services
             }
         }
 
-        private Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args)
+        private async Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args)
         {
-            _logger.LogDebug("Received message on topic: {Topic}", args.ApplicationMessage.Topic);
-            return MessageReceived?.Invoke(args) ?? Task.CompletedTask;
+            try
+            {
+                _logger.LogDebug("Received message on topic: {Topic}", args.ApplicationMessage.Topic);
+                if (MessageReceived != null)
+                {
+                    await MessageReceived.Invoke(args);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing MQTT message on topic: {Topic}", args.ApplicationMessage.Topic);
+            }
         }
 
         public void Dispose()
