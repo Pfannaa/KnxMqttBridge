@@ -1,33 +1,37 @@
 version: '3.8'
 
 services:
+  # MQTT Broker
   mosquitto:
-    image: docker.io/eclipse-mosquitto:latest
+    image: eclipse-mosquitto:latest
     container_name: mosquitto
     network_mode: host
     volumes:
-      - ${HOME}/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ${HOME}/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ${HOME}/mosquitto/data:/mosquitto/data
       - ${HOME}/mosquitto/log:/mosquitto/log
     restart: unless-stopped
 
+  # Time-Series Database
   influxdb:
-    image: docker.io/influxdb:2.7
+    image: influxdb:2.7
     container_name: influxdb
     network_mode: host
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=administrator
-      - DOCKER_INFLUXDB_INIT_PASSWORD=administrator
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
       - DOCKER_INFLUXDB_INIT_ORG=knx
       - DOCKER_INFLUXDB_INIT_BUCKET=knx-data
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=token
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token
+      - DOCKER_INFLUXDB_INIT_RETENTION=30d
     volumes:
-      - ${HOME}/influxdb-data:/var/lib/influxdb2
+      - ${HOME}/influxdb:/var/lib/influxdb2
     restart: unless-stopped
 
+  # Metrics Collection
   telegraf:
-    image: docker.io/telegraf:latest
+    image: telegraf:latest
     container_name: telegraf
     network_mode: host
     privileged: true
@@ -35,32 +39,29 @@ services:
       - ${HOME}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     restart: unless-stopped
 
+  # Visualization
   grafana:
-    image: docker.io/grafana/grafana:latest
+    image: grafana/grafana:latest
     container_name: grafana
     network_mode: host
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - ${HOME}/grafana-data:/var/lib/grafana
+      - ${HOME}/grafana:/var/lib/grafana
     restart: unless-stopped
 
+  # KNX-MQTT Bridge
   knxmqttbridge:
-    image: ghcr.io/pfannaa/knxmqttbridge:0.3
+    image: ghcr.io/pfannaa/knxmqttbridge:latest
     container_name: knxmqttbridge
     network_mode: host
     restart: unless-stopped
     environment:
-      environment:
       # KNX Configuration
       - KnxConfig__UseAutoDiscovery=true
+      - KnxConfig__AddressStyle=ThreeLevel
       # MQTT Configuration
-      - Mqtt__BrokerHost=192.168.1.10
+      - Mqtt__BrokerHost=localhost
       - Mqtt__BrokerPort=1883
     volumes:
       - ${HOME}/KnxMqttBridge/GroupAddresses.xml:/app/GroupAddresses.xml:ro
-
-volumes:
-  mosquitto-data:
-  influxdb-data:
-  grafana-data:
