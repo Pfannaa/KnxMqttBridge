@@ -48,6 +48,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - ${HOME}/grafana:/var/lib/grafana
+      - ${HOME}/grafana/provisioning:/etc/grafana/provisioning
     restart: unless-stopped
 
   # KNX-MQTT Bridge
