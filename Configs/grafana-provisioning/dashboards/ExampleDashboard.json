@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 0,
+  "id": 1,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -96,7 +96,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /Licht/)\n  |> filter(fn: (r) => r[\"Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Metadata_Name\"])",
           "refId": "A"
         }
       ],
@@ -175,7 +175,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-9-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/)\n  |> last()\n  |> group(columns: [\"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] == \"DPST-9-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /wr$/)\n  |> last()\n  |> group(columns: [\"Metadata_Name\"])",
           "refId": "A"
         }
       ],
@@ -263,7 +263,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /Licht/)\n  |> filter(fn: (r) => r[\"Name\"] =~ /sr$/)\n  |> aggregateWindow(every: 5m, fn: count, createEmpty: false)",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> aggregateWindow(every: 5m, fn: count, createEmpty: false)",
           "refId": "A"
         }
       ],
@@ -359,7 +359,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"DataPointType\"] == \"DPST-9-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/)\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] == \"DPST-9-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /wr$/)\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
@@ -507,7 +507,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Name\"] =~ /wr$/ or r[\"Name\"] =~ /sr$/)\n  |> group(columns: [\"Name\", \"Address\", \"Category\", \"DataPointType\"])\n  |> sort(columns: [\"Category\", \"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /wr$/ or r[\"Name\"] =~ /sr$/)\n  |> group(columns: [\"Metadata_Name\", \"Address\", \"Metadata_Category\", \"Metadata_DataPointType\"])\n  |> sort(columns: [\"Category\", \"Name\"])",
           "refId": "A"
         }
       ],
@@ -533,5 +533,5 @@
   "timezone": "",
   "title": "KNX Smart Home Dashboard",
   "uid": "knx-home",
-  "version": 2
+  "version": 1
 }
