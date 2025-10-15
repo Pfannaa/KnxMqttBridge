@@ -6,5 +6,10 @@ namespace KnxMqttBridge.Infrastructure
         public string? GatewayIp { get; set; }
         public int GatewayPort { get; set; } = 3671;
         public bool UseAutoDiscovery { get; set; } = true;
+
+        /// <summary>
+        /// KNX group address format style
+        /// </summary>
+        public KnxAddressStyle AddressStyle { get; set; } = KnxAddressStyle.ThreeLevel;
     }
 }

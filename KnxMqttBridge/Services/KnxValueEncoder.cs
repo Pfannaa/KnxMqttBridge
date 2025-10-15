@@ -1,7 +1,6 @@
-using System.Text.Json;
 using KnxMqttBridge.Models;
 using KnxMqttBridge.Services.Abstractions;
-using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace KnxMqttBridge.Services
 {

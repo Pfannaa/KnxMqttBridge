@@ -9,7 +9,7 @@ A bidirectional bridge between KNX (via Gira X1 Gateway) and MQTT, enabling inte
 ## Features
 
 - ✅ **Bidirectional Communication** - Read KNX events → Publish to MQTT, Send MQTT commands → Write to KNX bus
-- ✅ **Comprehensive DPT Support** - Boolean, Brightness, Dimming Control (4-bit), Temperature, Scene Control
+- ✅ **Comprehensive DPT Support** - Boolean, Brightness, Dimming Control (4-bit), Temperature, Scene Control, and more
 - ✅ **ETS Integration** - Import group addresses directly from ETS XML export with automatic DPT detection
 - ✅ **Docker Ready** - Easy deployment with docker-compose
 
@@ -76,11 +76,15 @@ docker run -d \
 | `GatewayIp` | IP address of KNX gateway (required if UseAutoDiscovery=false) | `null` |
 | `GatewayPort` | KNX/IP port | `3671` |
 | `UseAutoDiscovery` | Auto-discover gateway on network | `true` |
+| `AddressStyle` | KNX address format: `ThreeLevel` (1/2/3) or `TwoLevel` (1/2) | `ThreeLevel` |
 
 **Notes:**
 - If `UseAutoDiscovery` is `true` (default), the gateway is automatically discovered using multicast
 - If `UseAutoDiscovery` is `false`, you **must** provide `GatewayIp`
 - Auto-discovery may not work in all Docker/Podman environments - use manual config if needed
+- `AddressStyle` determines the MQTT topic structure and must match your KNX installation:
+  - `ThreeLevel`: Topics like `knx/GroupAddresses/2/1/71/command` (standard 3-level addressing)
+  - `TwoLevel`: Topics like `knx/GroupAddresses/2/71/command` (2-level addressing)
 
 ### MQTT Settings
 
@@ -104,6 +108,7 @@ Override any setting using the format `Section__Property` (double underscore):
 KnxConfig__GatewayIp=192.168.1.169
 KnxConfig__GatewayPort=3671
 KnxConfig__UseAutoDiscovery=false
+KnxConfig__AddressStyle=ThreeLevel
 
 # MQTT Configuration
 Mqtt__BrokerHost=192.168.1.10
@@ -143,6 +148,7 @@ services:
       - KnxConfig__UseAutoDiscovery=false
       - KnxConfig__GatewayIp=192.168.1.169
       - KnxConfig__GatewayPort=3671
+      - KnxConfig__AddressStyle=ThreeLevel  # or TwoLevel
       # MQTT Configuration
       - Mqtt__BrokerHost=192.168.1.10
       - Mqtt__BrokerPort=1883
@@ -157,52 +163,174 @@ services:
 
 ## Usage
 
+### Address Styles
+
+The bridge supports both KNX addressing styles:
+
+**Three-Level (default):** `main/middle/sub` (e.g., `2/1/71`)
+- Most common format
+- Topics: `knx/GroupAddresses/2/1/71/notification` and `knx/GroupAddresses/2/1/71/command`
+
+**Two-Level:** `main/sub` (e.g., `2/71`)
+- Legacy format used in some installations
+- Topics: `knx/GroupAddresses/2/71/notification` and `knx/GroupAddresses/2/71/command`
+- Set `"AddressStyle": TwoLevel` in configuration
+
 ### Receiving KNX Events (KNX → MQTT)
 
-Events are automatically published to:
+Events are automatically published under the `GroupAddresses` topic namespace:
+
+**Three-Level format:**
 ```
-knx/{subcategory}/{category}/{name}
+knx/GroupAddresses/{main}/{middle}/{sub}/notification
 ```
 
-**Example payload:**
+Examples:
+- `knx/GroupAddresses/2/1/71/notification` - Office Light Switch
+- `knx/GroupAddresses/2/1/4/notification` - Office Light Brightness
+- `knx/GroupAddresses/3/2/15/notification` - Living Room Temperature
+
+**Two-Level format:**
+```
+knx/GroupAddresses/{main}/{sub}/notification
+```
+
+Examples:
+- `knx/GroupAddresses/2/71/notification` - Office Light Switch
+- `knx/GroupAddresses/2/4/notification` - Office Light Brightness
+- `knx/GroupAddresses/3/15/notification` - Living Room Temperature
+
+**Example payload (with ETS configuration):**
 ```json
 {
-  "Name": "Office Light Switch",
   "Address": "2/1/71",
-  "DataPointType": "DPST-1-1",
+  "RawValue": "AQ==",
   "Value": 1,
-  "LastUpdated": "2025-10-14T10:30:45Z"
+  "Timestamp": "2025-10-14T10:30:45Z",
+  "Metadata": {
+    "Name": "Office Light Switch",
+    "Category": "Lighting",
+    "Subcategory": "Office",
+    "FullPath": "Lighting/Office",
+    "DataPointType": "DPST-1-1",
+    "DataPointDescription": "Switch",
+    "ClassicDataType": "Boolean",
+    "Security": null
+  }
 }
 ```
 
+**Example payload (without ETS configuration):**
+```json
+{
+  "Address": "2/1/71",
+  "RawValue": "AQ==",
+  "Value": 1,
+  "Timestamp": "2025-10-14T10:30:45Z"
+}
+```
+
+**Benefits of this structure:**
+- **Clear namespace separation** - Group addresses under `GroupAddresses`, leaves room for system topics (e.g., `knx/errors`, `knx/status`)
+- **Natural hierarchy** - Matches KNX 3-level group addresses
+- **Easy filtering** - Subscribe to `knx/GroupAddresses/2/#` for all main group 2 devices
+- **Intuitive discovery** - Address visible directly in topic path
+- **Works with or without ETS** - Bridge functions with heuristic decoding if no configuration provided
+
 ### Sending Commands (MQTT → KNX)
 
-Send commands to: `knx/command/{address-with-dashes}`
+Send commands using the same hierarchical structure under `GroupAddresses`:
 
-**Important:** Use dashes instead of slashes in addresses.
+**Three-Level format:**
+```
+knx/GroupAddresses/{main}/{middle}/{sub}/command
+```
 
-| Data Point Type | Use Case | Payload Example |
+Examples:
+- `knx/GroupAddresses/2/1/71/command` - Toggle Office Light
+- `knx/GroupAddresses/2/1/4/command` - Set Office Light Brightness
+- `knx/GroupAddresses/3/2/15/command` - Set Living Room Temperature
+
+**Two-Level format:**
+```
+knx/GroupAddresses/{main}/{sub}/command
+```
+
+Examples:
+- `knx/GroupAddresses/2/71/command` - Toggle Office Light
+- `knx/GroupAddresses/2/4/command` - Set Office Light Brightness
+- `knx/GroupAddresses/3/15/command` - Set Living Room Temperature
+
+### Command Payload Format
+
+All commands must be sent as **JSON objects** with the following structure:
+
+```json
+{
+  "Value": <value>,
+  "DataPointType": "<optional-dpt>"
+}
+```
+
+- **`Value`** (required): The value to send - can be a number, boolean, string, or object
+- **`DataPointType`** (optional): Only needed if the address is not in your ETS configuration
+
+| Data Point Type | Use Case | Example Payload |
 |-----------------|----------|-----------------|
-| **DPST-1-1** (Boolean) | Light switches | `1` (on) or `0` (off) |
-| **DPST-5-1** (Brightness) | Dimmer value | `128` (0-255) |
-| **DPST-3-7** (Dimming) | Relative dim | `{"Direction":"up","Steps":1}` |
-| **DPST-9-1** (Temperature) | Setpoint | `21.5` |
-| **DPST-18-1** (Scene) | Scene recall | `5` (0-63) |
+| **DPST-1-1** (Boolean) | Light switches | `{"Value": 1}` or `{"Value": 0}` |
+| **DPST-5-1** (Brightness) | Dimmer value | `{"Value": 128}` (0-255) |
+| **DPST-3-7** (Dimming) | Relative dim | `{"Value": {"Direction":"up","Steps":1}}` |
+| **DPST-9-1** (Temperature) | Setpoint | `{"Value": 21.5}` |
+| **DPST-18-1** (Scene) | Scene recall | `{"Value": 5}` (0-63) |
 
-**Examples:**
+**Command Examples (Three-Level):**
 
 ```bash
 # Turn light ON (address 2/1/71)
-mosquitto_pub -h localhost -t "knx/command/2-1-71" -m "1"
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/71/command" -m '{"Value":1}'
+
+# Turn light OFF
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/71/command" -m '{"Value":0}'
 
 # Set brightness to 50% (address 2/1/4)
-mosquitto_pub -h localhost -t "knx/command/2-1-4" -m "128"
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":128}'
 
 # Dim up (address 2/1/12)
-mosquitto_pub -h localhost -t "knx/command/2-1-12" -m '{"Direction":"up","Steps":1}'
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/12/command" -m '{"Value":{"Direction":"up","Steps":1}}'
+
+# Dim down
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/12/command" -m '{"Value":{"Direction":"down","Steps":3}}'
 
 # Set temperature to 21.5°C (address 3/2/15)
-mosquitto_pub -h localhost -t "knx/command/3-2-15" -m "21.5"
+mosquitto_pub -h localhost -t "knx/GroupAddresses/3/2/15/command" -m '{"Value":21.5}'
+```
+
+**Command Examples (Two-Level):**
+
+```bash
+# Turn light ON (address 2/71)
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/71/command" -m '{"Value":1}'
+
+# Set brightness to 50% (address 2/4)
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/4/command" -m '{"Value":128}'
+
+# Dim up (address 2/12)
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/12/command" -m '{"Value":{"Direction":"up","Steps":1}}'
+```
+
+**Commands for Unconfigured Addresses:**
+
+If you're running without ETS configuration, include the `DataPointType` in the payload:
+
+```bash
+# Boolean switch without config
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/71/command" -m '{"Value":1,"DataPointType":"DPST-1-1"}'
+
+# Temperature setpoint without config
+mosquitto_pub -h localhost -t "knx/GroupAddresses/3/2/15/command" -m '{"Value":21.5,"DataPointType":"DPST-9-1"}'
+
+# Brightness without config
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":200,"DataPointType":"DPST-5-1"}'
 ```
 
 ---
@@ -330,22 +458,24 @@ The container will reload configuration from your mounted files on restart.
 light:
   - platform: mqtt
     name: "Office Light"
-    state_topic: "knx/Office/Lighting/Office Light Switch"
+    state_topic: "knx/GroupAddresses/2/1/71/notification"
     state_value_template: "{{ value_json.Value }}"
-    command_topic: "knx/command/2-1-71"
-    payload_on: "1"
-    payload_off: "0"
-    brightness_state_topic: "knx/Office/Lighting/Office Light Brightness"
+    command_topic: "knx/GroupAddresses/2/1/71/command"
+    payload_on: '{"Value":1}'
+    payload_off: '{"Value":0}'
+    brightness_state_topic: "knx/GroupAddresses/2/1/4/notification"
     brightness_value_template: "{{ value_json.Value }}"
-    brightness_command_topic: "knx/command/2-1-4"
+    brightness_command_topic: "knx/GroupAddresses/2/1/4/command"
+    brightness_command_template: '{"Value":{{ value }}}'
     brightness_scale: 255
 
 climate:
   - platform: mqtt
     name: "Living Room"
-    current_temperature_topic: "knx/HVAC/Living Room/Temperature"
+    current_temperature_topic: "knx/GroupAddresses/3/2/15/notification"
     current_temperature_template: "{{ value_json.Value }}"
-    temperature_command_topic: "knx/command/3-2-15"
+    temperature_command_topic: "knx/GroupAddresses/3/2/15/command"
+    temperature_command_template: '{"Value":{{ value }}}'
     min_temp: 16
     max_temp: 26
 ```
@@ -354,13 +484,31 @@ climate:
 
 ```javascript
 // Toggle light
-msg.topic = "knx/command/2-1-71";
-msg.payload = msg.payload === "ON" ? "1" : "0";
+msg.topic = "knx/GroupAddresses/2/1/71/command";
+msg.payload = JSON.stringify({
+    Value: msg.payload === "ON" ? 1 : 0
+});
 return msg;
 
 // Set brightness (0-100% input)
-msg.topic = "knx/command/2-1-4";
-msg.payload = Math.round((msg.payload / 100) * 255).toString();
+msg.topic = "knx/GroupAddresses/2/1/4/command";
+msg.payload = JSON.stringify({
+    Value: Math.round((msg.payload / 100) * 255)
+});
+return msg;
+
+// Dim up
+msg.topic = "knx/GroupAddresses/2/1/12/command";
+msg.payload = JSON.stringify({
+    Value: {
+        Direction: "up",
+        Steps: 1
+    }
+});
+return msg;
+
+// Subscribe to all devices in main group 2 (lighting)
+msg.topic = "knx/GroupAddresses/2/#";
 return msg;
 ```
 
