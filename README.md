@@ -81,10 +81,14 @@ docker run -d \
 **Notes:**
 - If `UseAutoDiscovery` is `true` (default), the gateway is automatically discovered using multicast
 - If `UseAutoDiscovery` is `false`, you **must** provide `GatewayIp`
-- Auto-discovery may not work in all Docker/Podman environments - use manual config if needed
 - `AddressStyle` determines the MQTT topic structure and must match your KNX installation:
   - `ThreeLevel`: Topics like `knx/GroupAddresses/2/1/71/command` (standard 3-level addressing)
   - `TwoLevel`: Topics like `knx/GroupAddresses/2/71/command` (2-level addressing)
+
+**⚠️ Container Networking Limitations:**
+- **Windows containers (Docker/Podman)**: Auto-discovery does **NOT** work due to multicast limitations. You **must** use manual configuration with `UseAutoDiscovery=false` and specify `GatewayIp`.
+- **Linux containers**: Auto-discovery works if your KNX gateway supports multicast discovery and the container has proper network access.
+- **Native Windows/.NET**: Auto-discovery works normally when running outside containers.
 
 ### MQTT Settings
 
@@ -362,12 +366,27 @@ docker-compose up -d
 
 ### Docker Run
 
+**Linux (with auto-discovery):**
 ```bash
 docker run -d \
   --name knx-mqtt-bridge \
   --restart unless-stopped \
   --network host \
   -v ./appsettings.json:/app/appsettings.json:ro \
+  -v ./GroupAddresses.xml:/app/GroupAddresses.xml:ro \
+  knx-mqtt-bridge:latest
+```
+
+**Windows/Podman (manual configuration required):**
+```bash
+docker run -d \
+  --name knx-mqtt-bridge \
+  --restart unless-stopped \
+  --network host \
+  -e KnxConfig__UseAutoDiscovery=false \
+  -e KnxConfig__GatewayIp=192.168.1.169 \
+  -e KnxConfig__GatewayPort=3671 \
+  -e Mqtt__BrokerHost=192.168.1.10 \
   -v ./GroupAddresses.xml:/app/GroupAddresses.xml:ro \
   knx-mqtt-bridge:latest
 ```

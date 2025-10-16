@@ -38,9 +38,10 @@ namespace KnxMqttBridge.Services
                 // Check if manual configuration is provided
                 if (!config.UseAutoDiscovery && !string.IsNullOrEmpty(config.GatewayIp))
                 {
-                    // Use manual configuration
-                    var connectionString = $"ip:{config.GatewayIp}:{config.GatewayPort}";
+                    // Use manual configuration - build connection string matching auto-discovery format
+                    var connectionString = $"Type=IpTunneling;HostAddress={config.GatewayIp};ProtocolType=Tcp;UseNat=True";
                     _logger.LogInformation("Using manual KNX gateway configuration: {ConnectionString}", connectionString);
+
                     connectorParameters = ConnectorParameters.FromConnectionString(connectionString);
                 }
                 else
