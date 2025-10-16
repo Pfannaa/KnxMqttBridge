@@ -435,7 +435,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Name"
+              "options": "Metadata_Name"
             },
             "properties": [
               {
@@ -459,7 +459,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Category"
+              "options": "Metadata_Category"
             },
             "properties": [
               {
@@ -496,7 +496,7 @@
         "sortBy": [
           {
             "desc": false,
-            "displayName": "Category"
+            "displayName": "Metadata_Category"
           }
         ]
       },
@@ -507,7 +507,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /wr$/ or r[\"Name\"] =~ /sr$/)\n  |> group(columns: [\"Metadata_Name\", \"Address\", \"Metadata_Category\", \"Metadata_DataPointType\"])\n  |> sort(columns: [\"Category\", \"Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /wr$/ or r[\"Metadata_Name\"] =~ /sr$/)\n  |> group(columns: [\"Metadata_Name\", \"Address\", \"Metadata_Category\", \"Metadata_DataPointType\"])\n  |> sort(columns: [\"Metadata_Category\", \"Metadata_Name\"])",
           "refId": "A"
         }
       ],
