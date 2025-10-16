@@ -13,43 +13,66 @@ namespace KnxMqttBridge.Services
     {
         private readonly ILogger<MqttTopicParser> _logger;
         private readonly KnxConfiguration _knxConfiguration;
+        private readonly MqttConfiguration _mqttConfiguration;
 
         public MqttTopicParser(
             ILogger<MqttTopicParser> logger,
-            IOptions<KnxConfiguration> knxConfiguration)
+            IOptions<KnxConfiguration> knxConfiguration,
+            IOptions<MqttConfiguration> mqttConfiguration)
         {
             _logger = logger;
             _knxConfiguration = knxConfiguration.Value;
+            _mqttConfiguration = mqttConfiguration.Value;
         }
 
         public bool TryParseAddressFromTopic(string topic, out string address)
         {
             address = string.Empty;
-            var parts = topic.Split('/');
+            var topicPrefix = _mqttConfiguration.TopicPrefix ?? "knx";
+
+            // Expected format: {prefix}/GroupAddresses/{address}/command
+            var expectedPrefix = topicPrefix + "/GroupAddresses/";
+
+            if (!topic.StartsWith(expectedPrefix))
+            {
+                _logger.LogWarning("Topic does not start with expected prefix: {Topic}. Expected: {ExpectedPrefix}...", topic, expectedPrefix);
+                return false;
+            }
+
+            if (!topic.EndsWith("/command"))
+            {
+                _logger.LogWarning("Topic does not end with /command: {Topic}", topic);
+                return false;
+            }
+
+            // Extract the address part between prefix and /command
+            var startIndex = expectedPrefix.Length;
+            var endIndex = topic.LastIndexOf("/command");
+            var addressPart = topic.Substring(startIndex, endIndex - startIndex);
+
+            // Validate address format based on style
+            var addressParts = addressPart.Split('/');
 
             if (_knxConfiguration.AddressStyle == KnxAddressStyle.TwoLevel)
             {
-                // Parse format: knx/GroupAddresses/{main}/{sub}/command
-                if (parts.Length != 5 || parts[0] != "knx" || parts[1] != "GroupAddresses" || parts[4] != "command")
+                // Expected: {main}/{sub}
+                if (addressParts.Length != 2)
                 {
-                    _logger.LogWarning("Invalid command topic format: {Topic}. Expected knx/GroupAddresses/{{main}}/{{sub}}/command", topic);
+                    _logger.LogWarning("Invalid two-level address format: {Address}. Expected {{main}}/{{sub}}", addressPart);
                     return false;
                 }
-
-                address = $"{parts[2]}/{parts[3]}";
             }
             else
             {
-                // Parse format: knx/GroupAddresses/{main}/{middle}/{sub}/command
-                if (parts.Length != 6 || parts[0] != "knx" || parts[1] != "GroupAddresses" || parts[5] != "command")
+                // Expected: {main}/{middle}/{sub}
+                if (addressParts.Length != 3)
                 {
-                    _logger.LogWarning("Invalid command topic format: {Topic}. Expected knx/GroupAddresses/{{main}}/{{middle}}/{{sub}}/command", topic);
+                    _logger.LogWarning("Invalid three-level address format: {Address}. Expected {{main}}/{{middle}}/{{sub}}", addressPart);
                     return false;
                 }
-
-                address = $"{parts[2]}/{parts[3]}/{parts[4]}";
             }
 
+            address = addressPart;
             return true;
         }
 
