@@ -247,7 +247,7 @@ namespace KnxMqttBridge.Services
                 case 1:
                     // Could be boolean (0x00/0x01) or 8-bit value
                     if (rawValue[0] == 0x00 || rawValue[0] == 0x01)
-                        return rawValue[0] == 0x01;
+                        return rawValue[0]; // Return as int (0 or 1) for time-series database compatibility
                     return rawValue[0]; // Return as byte
 
                 case 2:
@@ -283,9 +283,10 @@ namespace KnxMqttBridge.Services
         }
 
         // DPT 1.x - Boolean
-        private bool DecodeBoolean(byte[] data)
+        // Returns int (0 or 1) instead of bool for better compatibility with time-series databases
+        private int DecodeBoolean(byte[] data)
         {
-            return data.Length > 0 && (data[0] & 0x01) != 0;
+            return (data.Length > 0 && (data[0] & 0x01) != 0) ? 1 : 0;
         }
 
         // DPT 2.x - 1-bit controlled (value + control)
