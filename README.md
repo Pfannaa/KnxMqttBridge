@@ -3,6 +3,7 @@
 A bidirectional bridge between KNX (via Gira X1 Gateway) and MQTT, enabling integration with home automation systems like Home Assistant, Node-RED, and more.
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
+[![.NET Tests](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml)
 [![KNX](https://img.shields.io/badge/KNX-IP%20Tunneling-00A9CE)](https://www.knx.org/)
 [![MQTT](https://img.shields.io/badge/MQTT-3.1.1-660066)](https://mqtt.org/)
 
