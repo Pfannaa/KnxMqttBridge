@@ -59,11 +59,15 @@ namespace KnxMqttBridge.Services
             encodedValue = null!;
 
             // Convert command value to string for encoding
-            string valueString = commandValue switch
+            string valueString;
+            if (commandValue is JsonElement jsonElement)
             {
-                JsonElement jsonElement => jsonElement.GetRawText(),
-                _ => JsonSerializer.Serialize(commandValue)
-            };
+                valueString = jsonElement.GetRawText();
+            }
+            else
+            {
+                valueString = JsonSerializer.Serialize(commandValue);
+            }
 
             try
             {

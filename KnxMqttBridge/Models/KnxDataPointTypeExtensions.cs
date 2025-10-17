@@ -11,13 +11,17 @@ namespace KnxMqttBridge.Models
         public static KnxDataPointType? ParseDataPointType(string dptString)
         {
             if (string.IsNullOrWhiteSpace(dptString))
+            {
                 return null;
+            }
 
             // Replace dashes with underscores for enum matching
             var enumString = dptString.Replace("-", "_");
 
             if (Enum.TryParse<KnxDataPointType>(enumString, true, out var result))
+            {
                 return result;
+            }
 
             return null;
         }
