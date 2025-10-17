@@ -96,7 +96,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] =~ /^DPST-1-/)\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> group(columns: [\"Metadata_Name\"])\n  |> last()",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] =~ /^DPST-1-/)\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> group(columns: [\"Metadata_Name\"])\n  |> last()\n  |> keep(columns: [\"_value\", \"Metadata_Name\", \"_time\"])",
           "refId": "A"
         }
       ],
@@ -533,5 +533,5 @@
   "timezone": "",
   "title": "KNX Smart Home Dashboard",
   "uid": "knx-home",
-  "version": 2
+  "version": 3
 }
