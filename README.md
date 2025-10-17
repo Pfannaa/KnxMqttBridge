@@ -234,6 +234,12 @@ Examples:
 }
 ```
 
+**Value Types in Notifications:**
+- **Boolean (DPST-1-x):** Integer `0` or `1` (not boolean for InfluxDB compatibility)
+- **Percentage (DPST-5-1):** Float `0.0` to `100.0` (percentage)
+- **Temperature (DPST-9-x):** Float with decimal precision (e.g., `21.5`)
+- **Scene (DPST-18-1):** Integer `0` to `63`
+
 **Benefits of this structure:**
 - **Clear namespace separation** - Group addresses under `GroupAddresses`, leaves room for system topics (e.g., `knx/errors`, `knx/status`)
 - **Natural hierarchy** - Matches KNX 3-level group addresses
@@ -282,7 +288,7 @@ All commands must be sent as **JSON objects** with the following structure:
 | Data Point Type | Use Case | Example Payload |
 |-----------------|----------|-----------------|
 | **DPST-1-1** (Boolean) | Light switches | `{"Value": 1}` or `{"Value": 0}` |
-| **DPST-5-1** (Brightness) | Dimmer value | `{"Value": 128}` (0-255) |
+| **DPST-5-1** (Percentage) | Dimmer brightness | `{"Value": 50}` (0-100%) |
 | **DPST-3-7** (Dimming) | Relative dim | `{"Value": {"Direction":"up","Steps":1}}` |
 | **DPST-9-1** (Temperature) | Setpoint | `{"Value": 21.5}` |
 | **DPST-18-1** (Scene) | Scene recall | `{"Value": 5}` (0-63) |
@@ -297,7 +303,7 @@ mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/71/command" -m '{"Value":1
 mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/71/command" -m '{"Value":0}'
 
 # Set brightness to 50% (address 2/1/4)
-mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":128}'
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":50}'
 
 # Dim up (address 2/1/12)
 mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/12/command" -m '{"Value":{"Direction":"up","Steps":1}}'
@@ -316,7 +322,7 @@ mosquitto_pub -h localhost -t "knx/GroupAddresses/3/2/15/command" -m '{"Value":2
 mosquitto_pub -h localhost -t "knx/GroupAddresses/2/71/command" -m '{"Value":1}'
 
 # Set brightness to 50% (address 2/4)
-mosquitto_pub -h localhost -t "knx/GroupAddresses/2/4/command" -m '{"Value":128}'
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/4/command" -m '{"Value":50}'
 
 # Dim up (address 2/12)
 mosquitto_pub -h localhost -t "knx/GroupAddresses/2/12/command" -m '{"Value":{"Direction":"up","Steps":1}}'
@@ -333,8 +339,8 @@ mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/71/command" -m '{"Value":1
 # Temperature setpoint without config
 mosquitto_pub -h localhost -t "knx/GroupAddresses/3/2/15/command" -m '{"Value":21.5,"DataPointType":"DPST-9-1"}'
 
-# Brightness without config
-mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":200,"DataPointType":"DPST-5-1"}'
+# Brightness without config (75%)
+mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":75,"DataPointType":"DPST-5-1"}'
 ```
 
 ---
@@ -486,7 +492,7 @@ light:
     brightness_value_template: "{{ value_json.Value }}"
     brightness_command_topic: "knx/GroupAddresses/2/1/4/command"
     brightness_command_template: '{"Value":{{ value }}}'
-    brightness_scale: 255
+    brightness_scale: 100
 
 climate:
   - platform: mqtt
@@ -512,7 +518,7 @@ return msg;
 // Set brightness (0-100% input)
 msg.topic = "knx/GroupAddresses/2/1/4/command";
 msg.payload = JSON.stringify({
-    Value: Math.round((msg.payload / 100) * 255)
+    Value: msg.payload  // Pass through directly as percentage
 });
 return msg;
 
@@ -565,10 +571,13 @@ This is **normal** for your own commands - the gateway filters echo to prevent l
 ### Boolean/Switch (DPST-1-x)
 - **Use:** Light switches, on/off controls
 - **Payload:** `0` or `1`
+- **Published Value:** Integer `0` or `1` (not boolean for InfluxDB compatibility)
 
-### Brightness (DPST-5-x)
-- **Use:** Dimmer values, brightness percentage
-- **Payload:** `0` to `255` (0% to 100%)
+### Percentage/Brightness (DPST-5-1)
+- **Use:** Dimmer brightness, percentage values
+- **Command Payload:** `0` to `100` (percentage)
+- **Published Value:** `0.0` to `100.0` (float percentage)
+- **Note:** Commands accept intuitive 0-100% values, automatically converted to KNX 0-255 range
 
 ### Dimming Control (DPST-3-7)
 - **Use:** Relative dimming (increase/decrease)

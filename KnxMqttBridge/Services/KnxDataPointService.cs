@@ -19,7 +19,9 @@ namespace KnxMqttBridge.Services
         public object DecodeValue(byte[] rawValue, string? dataPointType = null)
         {
             if (rawValue == null || rawValue.Length == 0)
+            {
                 return null;
+            }
 
             // If DPT is known, use it for accurate decoding
             if (!string.IsNullOrEmpty(dataPointType))
@@ -38,86 +40,105 @@ namespace KnxMqttBridge.Services
         {
             try
             {
-                return dataPointType switch
+                // DPT 1.x - Boolean
+                if (dataPointType.StartsWith("DPST-1-") || dataPointType.StartsWith("DPT-1"))
                 {
-                    // DPT 1.x - Boolean
-                    var dpt when dpt.StartsWith("DPST-1-") || dpt.StartsWith("DPT-1") =>
-                        EncodeBoolean(value),
-
-                    // DPT 2.x - 1-bit controlled
-                    var dpt when dpt.StartsWith("DPST-2-") || dpt.StartsWith("DPT-2") =>
-                        EncodeBitControlled(value),
-
-                    // DPT 3.x - 3-bit controlled (dimming, blinds)
-                    var dpt when dpt.StartsWith("DPST-3-") || dpt.StartsWith("DPT-3") =>
-                        Encode3BitControlled(value),
-
-                    // DPT 4.x - Character
-                    var dpt when dpt.StartsWith("DPST-4-") || dpt.StartsWith("DPT-4") =>
-                        EncodeCharacter(value),
-
-                    // DPT 5.x - 8-bit unsigned value
-                    var dpt when dpt.StartsWith("DPST-5-") || dpt.StartsWith("DPT-5") =>
-                        EncodeUInt8(value),
-
-                    // DPT 6.x - 8-bit signed value
-                    var dpt when dpt.StartsWith("DPST-6-") || dpt.StartsWith("DPT-6") =>
-                        EncodeInt8(value),
-
-                    // DPT 7.x - 16-bit unsigned value
-                    var dpt when dpt.StartsWith("DPST-7-") || dpt.StartsWith("DPT-7") =>
-                        EncodeUInt16(value),
-
-                    // DPT 8.x - 16-bit signed value
-                    var dpt when dpt.StartsWith("DPST-8-") || dpt.StartsWith("DPT-8") =>
-                        EncodeInt16(value),
-
-                    // DPT 9.x - 16-bit float
-                    var dpt when dpt.StartsWith("DPST-9-") || dpt.StartsWith("DPT-9") =>
-                        EncodeFloat16(value),
-
-                    // DPT 10.x - Time
-                    var dpt when dpt.StartsWith("DPST-10-") || dpt.StartsWith("DPT-10") =>
-                        EncodeTime(value),
-
-                    // DPT 11.x - Date
-                    var dpt when dpt.StartsWith("DPST-11-") || dpt.StartsWith("DPT-11") =>
-                        EncodeDate(value),
-
-                    // DPT 12.x - 32-bit unsigned value
-                    var dpt when dpt.StartsWith("DPST-12-") || dpt.StartsWith("DPT-12") =>
-                        EncodeUInt32(value),
-
-                    // DPT 13.x - 32-bit signed value
-                    var dpt when dpt.StartsWith("DPST-13-") || dpt.StartsWith("DPT-13") =>
-                        EncodeInt32(value),
-
-                    // DPT 14.x - 32-bit float
-                    var dpt when dpt.StartsWith("DPST-14-") || dpt.StartsWith("DPT-14") =>
-                        EncodeFloat32(value),
-
-                    // DPT 15.x - Entrance access
-                    var dpt when dpt.StartsWith("DPST-15-") || dpt.StartsWith("DPT-15") =>
-                        EncodeEntranceAccess(value),
-
-                    // DPT 16.x - Character string
-                    var dpt when dpt.StartsWith("DPST-16-") || dpt.StartsWith("DPT-16") =>
-                        EncodeString(value),
-
-                    // DPT 17.x - Scene number
-                    var dpt when dpt.StartsWith("DPST-17-") || dpt.StartsWith("DPT-17") =>
-                        EncodeSceneNumber(value),
-
-                    // DPT 18.x - Scene control
-                    var dpt when dpt.StartsWith("DPST-18-") || dpt.StartsWith("DPT-18") =>
-                        EncodeSceneControl(value),
-
-                    // DPT 19.x - Date/Time
-                    var dpt when dpt.StartsWith("DPST-19-") || dpt.StartsWith("DPT-19") =>
-                        EncodeDateTime(value),
-
-                    _ => throw new NotSupportedException($"Data point type '{dataPointType}' is not supported")
-                };
+                    return EncodeBoolean(value);
+                }
+                // DPT 2.x - 1-bit controlled
+                else if (dataPointType.StartsWith("DPST-2-") || dataPointType.StartsWith("DPT-2"))
+                {
+                    return EncodeBitControlled(value);
+                }
+                // DPT 3.x - 3-bit controlled (dimming, blinds)
+                else if (dataPointType.StartsWith("DPST-3-") || dataPointType.StartsWith("DPT-3"))
+                {
+                    return Encode3BitControlled(value);
+                }
+                // DPT 4.x - Character
+                else if (dataPointType.StartsWith("DPST-4-") || dataPointType.StartsWith("DPT-4"))
+                {
+                    return EncodeCharacter(value);
+                }
+                // DPT 5.x - 8-bit unsigned value
+                else if (dataPointType.StartsWith("DPST-5-") || dataPointType.StartsWith("DPT-5"))
+                {
+                    return EncodeUInt8(value, dataPointType);
+                }
+                // DPT 6.x - 8-bit signed value
+                else if (dataPointType.StartsWith("DPST-6-") || dataPointType.StartsWith("DPT-6"))
+                {
+                    return EncodeInt8(value);
+                }
+                // DPT 7.x - 16-bit unsigned value
+                else if (dataPointType.StartsWith("DPST-7-") || dataPointType.StartsWith("DPT-7"))
+                {
+                    return EncodeUInt16(value);
+                }
+                // DPT 8.x - 16-bit signed value
+                else if (dataPointType.StartsWith("DPST-8-") || dataPointType.StartsWith("DPT-8"))
+                {
+                    return EncodeInt16(value);
+                }
+                // DPT 9.x - 16-bit float
+                else if (dataPointType.StartsWith("DPST-9-") || dataPointType.StartsWith("DPT-9"))
+                {
+                    return EncodeFloat16(value);
+                }
+                // DPT 10.x - Time
+                else if (dataPointType.StartsWith("DPST-10-") || dataPointType.StartsWith("DPT-10"))
+                {
+                    return EncodeTime(value);
+                }
+                // DPT 11.x - Date
+                else if (dataPointType.StartsWith("DPST-11-") || dataPointType.StartsWith("DPT-11"))
+                {
+                    return EncodeDate(value);
+                }
+                // DPT 12.x - 32-bit unsigned value
+                else if (dataPointType.StartsWith("DPST-12-") || dataPointType.StartsWith("DPT-12"))
+                {
+                    return EncodeUInt32(value);
+                }
+                // DPT 13.x - 32-bit signed value
+                else if (dataPointType.StartsWith("DPST-13-") || dataPointType.StartsWith("DPT-13"))
+                {
+                    return EncodeInt32(value);
+                }
+                // DPT 14.x - 32-bit float
+                else if (dataPointType.StartsWith("DPST-14-") || dataPointType.StartsWith("DPT-14"))
+                {
+                    return EncodeFloat32(value);
+                }
+                // DPT 15.x - Entrance access
+                else if (dataPointType.StartsWith("DPST-15-") || dataPointType.StartsWith("DPT-15"))
+                {
+                    return EncodeEntranceAccess(value);
+                }
+                // DPT 16.x - Character string
+                else if (dataPointType.StartsWith("DPST-16-") || dataPointType.StartsWith("DPT-16"))
+                {
+                    return EncodeString(value);
+                }
+                // DPT 17.x - Scene number
+                else if (dataPointType.StartsWith("DPST-17-") || dataPointType.StartsWith("DPT-17"))
+                {
+                    return EncodeSceneNumber(value);
+                }
+                // DPT 18.x - Scene control
+                else if (dataPointType.StartsWith("DPST-18-") || dataPointType.StartsWith("DPT-18"))
+                {
+                    return EncodeSceneControl(value);
+                }
+                // DPT 19.x - Date/Time
+                else if (dataPointType.StartsWith("DPST-19-") || dataPointType.StartsWith("DPT-19"))
+                {
+                    return EncodeDateTime(value);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Data point type '{dataPointType}' is not supported");
+                }
             }
             catch (Exception ex)
             {
@@ -150,86 +171,105 @@ namespace KnxMqttBridge.Services
         {
             try
             {
-                return dataPointType switch
+                // DPT 1.x - Boolean
+                if (dataPointType.StartsWith("DPST-1-") || dataPointType.StartsWith("DPT-1"))
                 {
-                    // DPT 1.x - Boolean
-                    var dpt when dpt.StartsWith("DPST-1-") || dpt.StartsWith("DPT-1") =>
-                        DecodeBoolean(rawValue),
-
-                    // DPT 2.x - 1-bit controlled
-                    var dpt when dpt.StartsWith("DPST-2-") || dpt.StartsWith("DPT-2") =>
-                        DecodeBitControlled(rawValue),
-
-                    // DPT 3.x - 3-bit controlled
-                    var dpt when dpt.StartsWith("DPST-3-") || dpt.StartsWith("DPT-3") =>
-                        Decode3BitControlled(rawValue),
-
-                    // DPT 4.x - Character
-                    var dpt when dpt.StartsWith("DPST-4-") || dpt.StartsWith("DPT-4") =>
-                        DecodeCharacter(rawValue),
-
-                    // DPT 5.x - 8-bit unsigned
-                    var dpt when dpt.StartsWith("DPST-5-") || dpt.StartsWith("DPT-5") =>
-                        DecodeUInt8(rawValue, dataPointType),
-
-                    // DPT 6.x - 8-bit signed
-                    var dpt when dpt.StartsWith("DPST-6-") || dpt.StartsWith("DPT-6") =>
-                        DecodeInt8(rawValue),
-
-                    // DPT 7.x - 16-bit unsigned
-                    var dpt when dpt.StartsWith("DPST-7-") || dpt.StartsWith("DPT-7") =>
-                        DecodeUInt16(rawValue),
-
-                    // DPT 8.x - 16-bit signed
-                    var dpt when dpt.StartsWith("DPST-8-") || dpt.StartsWith("DPT-8") =>
-                        DecodeInt16(rawValue),
-
-                    // DPT 9.x - 16-bit float
-                    var dpt when dpt.StartsWith("DPST-9-") || dpt.StartsWith("DPT-9") =>
-                        DecodeFloat16(rawValue),
-
-                    // DPT 10.x - Time
-                    var dpt when dpt.StartsWith("DPST-10-") || dpt.StartsWith("DPT-10") =>
-                        DecodeTime(rawValue),
-
-                    // DPT 11.x - Date
-                    var dpt when dpt.StartsWith("DPST-11-") || dpt.StartsWith("DPT-11") =>
-                        DecodeDate(rawValue),
-
-                    // DPT 12.x - 32-bit unsigned
-                    var dpt when dpt.StartsWith("DPST-12-") || dpt.StartsWith("DPT-12") =>
-                        DecodeUInt32(rawValue),
-
-                    // DPT 13.x - 32-bit signed
-                    var dpt when dpt.StartsWith("DPST-13-") || dpt.StartsWith("DPT-13") =>
-                        DecodeInt32(rawValue),
-
-                    // DPT 14.x - 32-bit float
-                    var dpt when dpt.StartsWith("DPST-14-") || dpt.StartsWith("DPT-14") =>
-                        DecodeFloat32(rawValue),
-
-                    // DPT 15.x - Entrance access
-                    var dpt when dpt.StartsWith("DPST-15-") || dpt.StartsWith("DPT-15") =>
-                        DecodeEntranceAccess(rawValue),
-
-                    // DPT 16.x - String
-                    var dpt when dpt.StartsWith("DPST-16-") || dpt.StartsWith("DPT-16") =>
-                        DecodeString(rawValue),
-
-                    // DPT 17.x - Scene number
-                    var dpt when dpt.StartsWith("DPST-17-") || dpt.StartsWith("DPT-17") =>
-                        DecodeSceneNumber(rawValue),
-
-                    // DPT 18.x - Scene control
-                    var dpt when dpt.StartsWith("DPST-18-") || dpt.StartsWith("DPT-18") =>
-                        DecodeSceneControl(rawValue),
-
-                    // DPT 19.x - DateTime
-                    var dpt when dpt.StartsWith("DPST-19-") || dpt.StartsWith("DPT-19") =>
-                        DecodeDateTime(rawValue),
-
-                    _ => Convert.ToBase64String(rawValue)
-                };
+                    return DecodeBoolean(rawValue);
+                }
+                // DPT 2.x - 1-bit controlled
+                else if (dataPointType.StartsWith("DPST-2-") || dataPointType.StartsWith("DPT-2"))
+                {
+                    return DecodeBitControlled(rawValue);
+                }
+                // DPT 3.x - 3-bit controlled
+                else if (dataPointType.StartsWith("DPST-3-") || dataPointType.StartsWith("DPT-3"))
+                {
+                    return Decode3BitControlled(rawValue);
+                }
+                // DPT 4.x - Character
+                else if (dataPointType.StartsWith("DPST-4-") || dataPointType.StartsWith("DPT-4"))
+                {
+                    return DecodeCharacter(rawValue);
+                }
+                // DPT 5.x - 8-bit unsigned
+                else if (dataPointType.StartsWith("DPST-5-") || dataPointType.StartsWith("DPT-5"))
+                {
+                    return DecodeUInt8(rawValue, dataPointType);
+                }
+                // DPT 6.x - 8-bit signed
+                else if (dataPointType.StartsWith("DPST-6-") || dataPointType.StartsWith("DPT-6"))
+                {
+                    return DecodeInt8(rawValue);
+                }
+                // DPT 7.x - 16-bit unsigned
+                else if (dataPointType.StartsWith("DPST-7-") || dataPointType.StartsWith("DPT-7"))
+                {
+                    return DecodeUInt16(rawValue);
+                }
+                // DPT 8.x - 16-bit signed
+                else if (dataPointType.StartsWith("DPST-8-") || dataPointType.StartsWith("DPT-8"))
+                {
+                    return DecodeInt16(rawValue);
+                }
+                // DPT 9.x - 16-bit float
+                else if (dataPointType.StartsWith("DPST-9-") || dataPointType.StartsWith("DPT-9"))
+                {
+                    return DecodeFloat16(rawValue);
+                }
+                // DPT 10.x - Time
+                else if (dataPointType.StartsWith("DPST-10-") || dataPointType.StartsWith("DPT-10"))
+                {
+                    return DecodeTime(rawValue);
+                }
+                // DPT 11.x - Date
+                else if (dataPointType.StartsWith("DPST-11-") || dataPointType.StartsWith("DPT-11"))
+                {
+                    return DecodeDate(rawValue);
+                }
+                // DPT 12.x - 32-bit unsigned
+                else if (dataPointType.StartsWith("DPST-12-") || dataPointType.StartsWith("DPT-12"))
+                {
+                    return DecodeUInt32(rawValue);
+                }
+                // DPT 13.x - 32-bit signed
+                else if (dataPointType.StartsWith("DPST-13-") || dataPointType.StartsWith("DPT-13"))
+                {
+                    return DecodeInt32(rawValue);
+                }
+                // DPT 14.x - 32-bit float
+                else if (dataPointType.StartsWith("DPST-14-") || dataPointType.StartsWith("DPT-14"))
+                {
+                    return DecodeFloat32(rawValue);
+                }
+                // DPT 15.x - Entrance access
+                else if (dataPointType.StartsWith("DPST-15-") || dataPointType.StartsWith("DPT-15"))
+                {
+                    return DecodeEntranceAccess(rawValue);
+                }
+                // DPT 16.x - String
+                else if (dataPointType.StartsWith("DPST-16-") || dataPointType.StartsWith("DPT-16"))
+                {
+                    return DecodeString(rawValue);
+                }
+                // DPT 17.x - Scene number
+                else if (dataPointType.StartsWith("DPST-17-") || dataPointType.StartsWith("DPT-17"))
+                {
+                    return DecodeSceneNumber(rawValue);
+                }
+                // DPT 18.x - Scene control
+                else if (dataPointType.StartsWith("DPST-18-") || dataPointType.StartsWith("DPT-18"))
+                {
+                    return DecodeSceneControl(rawValue);
+                }
+                // DPT 19.x - DateTime
+                else if (dataPointType.StartsWith("DPST-19-") || dataPointType.StartsWith("DPT-19"))
+                {
+                    return DecodeDateTime(rawValue);
+                }
+                else
+                {
+                    return Convert.ToBase64String(rawValue);
+                }
             }
             catch (Exception ex)
             {
@@ -247,7 +287,9 @@ namespace KnxMqttBridge.Services
                 case 1:
                     // Could be boolean (0x00/0x01) or 8-bit value
                     if (rawValue[0] == 0x00 || rawValue[0] == 0x01)
-                        return rawValue[0]; // Return as int (0 or 1) for time-series database compatibility
+                    {
+                        return (int)rawValue[0]; // Return as int (0 or 1) for time-series database compatibility
+                    }
                     return rawValue[0]; // Return as byte
 
                 case 2:
@@ -292,14 +334,20 @@ namespace KnxMqttBridge.Services
         // DPT 2.x - 1-bit controlled (value + control)
         private object DecodeBitControlled(byte[] data)
         {
-            if (data.Length == 0) return null;
+            if (data.Length == 0)
+            {
+                return null;
+            }
             return new { Control = (data[0] & 0x02) != 0, Value = (data[0] & 0x01) != 0 };
         }
 
         // DPT 3.x - 3-bit controlled (dimming, blinds)
         private object Decode3BitControlled(byte[] data)
         {
-            if (data.Length == 0) return null;
+            if (data.Length == 0)
+            {
+                return null;
+            }
             bool control = (data[0] & 0x08) != 0;
             int steps = data[0] & 0x07;
             return new { Control = control, Steps = steps };
@@ -314,11 +362,16 @@ namespace KnxMqttBridge.Services
         // DPT 5.x - 8-bit unsigned
         private object DecodeUInt8(byte[] data, string dataPointType)
         {
-            if (data.Length == 0) return 0;
+            if (data.Length == 0)
+            {
+                return 0;
+            }
 
             // DPT 5.1 is percentage (0-100%)
             if (dataPointType == "DPST-5-1" || dataPointType == "DPT-5.001")
+            {
                 return Math.Round(data[0] * 100.0 / 255.0, 1);
+            }
 
             return data[0];
         }
@@ -332,21 +385,30 @@ namespace KnxMqttBridge.Services
         // DPT 7.x - 16-bit unsigned
         private ushort DecodeUInt16(byte[] data)
         {
-            if (data.Length < 2) return 0;
+            if (data.Length < 2)
+            {
+                return 0;
+            }
             return (ushort)((data[0] << 8) | data[1]);
         }
 
         // DPT 8.x - 16-bit signed
         private short DecodeInt16(byte[] data)
         {
-            if (data.Length < 2) return 0;
+            if (data.Length < 2)
+            {
+                return 0;
+            }
             return (short)((data[0] << 8) | data[1]);
         }
 
         // DPT 9.x - 16-bit float
         private float DecodeFloat16(byte[] data)
         {
-            if (data.Length < 2) return 0;
+            if (data.Length < 2)
+            {
+                return 0;
+            }
 
             int value = (data[0] << 8) | data[1];
             int sign = (value & 0x8000) >> 15;
@@ -360,7 +422,10 @@ namespace KnxMqttBridge.Services
         // DPT 10.x - Time
         private string DecodeTime(byte[] data)
         {
-            if (data.Length < 3) return null;
+            if (data.Length < 3)
+            {
+                return null;
+            }
             int day = (data[0] & 0xE0) >> 5; // Day of week (0-7)
             int hour = data[0] & 0x1F;
             int minute = data[1] & 0x3F;
@@ -371,7 +436,10 @@ namespace KnxMqttBridge.Services
         // DPT 11.x - Date
         private string DecodeDate(byte[] data)
         {
-            if (data.Length < 3) return null;
+            if (data.Length < 3)
+            {
+                return null;
+            }
             int day = data[0] & 0x1F;
             int month = data[1] & 0x0F;
             int year = 2000 + (data[2] & 0x7F);
@@ -381,30 +449,44 @@ namespace KnxMqttBridge.Services
         // DPT 12.x - 32-bit unsigned
         private uint DecodeUInt32(byte[] data)
         {
-            if (data.Length < 4) return 0;
+            if (data.Length < 4)
+            {
+                return 0;
+            }
             return (uint)((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]);
         }
 
         // DPT 13.x - 32-bit signed
         private int DecodeInt32(byte[] data)
         {
-            if (data.Length < 4) return 0;
+            if (data.Length < 4)
+            {
+                return 0;
+            }
             return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         }
 
         // DPT 14.x - 32-bit float
         private float DecodeFloat32(byte[] data)
         {
-            if (data.Length < 4) return 0;
+            if (data.Length < 4)
+            {
+                return 0;
+            }
             if (BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(data);
+            }
             return BitConverter.ToSingle(data, 0);
         }
 
         // DPT 15.x - Entrance access
         private object DecodeEntranceAccess(byte[] data)
         {
-            if (data.Length < 4) return null;
+            if (data.Length < 4)
+            {
+                return null;
+            }
             return new
             {
                 AccessCode = (data[0] << 16) | (data[1] << 8) | data[2],
@@ -431,7 +513,10 @@ namespace KnxMqttBridge.Services
         // DPT 18.x - Scene control
         private object DecodeSceneControl(byte[] data)
         {
-            if (data.Length == 0) return null;
+            if (data.Length == 0)
+            {
+                return null;
+            }
             return new
             {
                 Learn = (data[0] & 0x80) != 0,
@@ -442,7 +527,10 @@ namespace KnxMqttBridge.Services
         // DPT 19.x - DateTime
         private DateTime DecodeDateTime(byte[] data)
         {
-            if (data.Length < 8) return DateTime.MinValue;
+            if (data.Length < 8)
+            {
+                return DateTime.MinValue;
+            }
 
             int year = data[0];
             int month = data[1] & 0x0F;
@@ -468,9 +556,18 @@ namespace KnxMqttBridge.Services
         // DPT 1.x - Boolean
         private bool EncodeBoolean(object value)
         {
-            if (value is bool b) return b;
-            if (value is string s) return s == "1" || s.ToLower() == "true" || s.ToLower() == "on";
-            if (value is int i) return i > 0;
+            if (value is bool b)
+            {
+                return b;
+            }
+            if (value is string s)
+            {
+                return s == "1" || s.ToLower() == "true" || s.ToLower() == "on";
+            }
+            if (value is int i)
+            {
+                return i > 0;
+            }
             return Convert.ToBoolean(value);
         }
 
@@ -507,14 +604,20 @@ namespace KnxMqttBridge.Services
                         var val = kv[1].Trim().ToLower();
 
                         if (key == "direction")
+                        {
                             isUp = val == "up" || val == "increase";
+                        }
                         else if (key == "steps")
+                        {
                             int.TryParse(val, out steps);
+                        }
                     }
                 }
 
                 if (isUp)
+                {
                     encoded |= 0x08;
+                }
                 encoded |= (byte)(steps & 0x07);
             }
 
@@ -524,17 +627,63 @@ namespace KnxMqttBridge.Services
         // DPT 4.x - Character
         private byte EncodeCharacter(object value)
         {
-            if (value is char c) return (byte)c;
-            if (value is string s && s.Length > 0) return (byte)s[0];
+            if (value is char c)
+            {
+                return (byte)c;
+            }
+            if (value is string s && s.Length > 0)
+            {
+                return (byte)s[0];
+            }
             return 0;
         }
 
         // DPT 5.x - 8-bit unsigned
-        private byte EncodeUInt8(object value)
+        private byte EncodeUInt8(object value, string dataPointType)
         {
-            if (value is byte b) return b;
-            if (value is int i) return (byte)Math.Clamp(i, 0, 255);
-            if (value is string s && byte.TryParse(s, out byte result)) return result;
+            // DPT 5.1 is percentage (0-100%), convert to 0-255
+            if (dataPointType == "DPST-5-1" || dataPointType == "DPT-5.001")
+            {
+                double percentage;
+                if (value is double d)
+                {
+                    percentage = d;
+                }
+                else if (value is float f)
+                {
+                    percentage = f;
+                }
+                else if (value is int intVal)
+                {
+                    percentage = intVal;
+                }
+                else if (value is string strVal && double.TryParse(strVal, out double parsed))
+                {
+                    percentage = parsed;
+                }
+                else
+                {
+                    percentage = Convert.ToDouble(value);
+                }
+
+                // Clamp to 0-100% and convert to 0-255
+                percentage = Math.Clamp(percentage, 0, 100);
+                return (byte)Math.Round(percentage * 255.0 / 100.0);
+            }
+
+            // For other DPT 5.x types, treat as raw 0-255 value
+            if (value is byte b)
+            {
+                return b;
+            }
+            if (value is int i)
+            {
+                return (byte)Math.Clamp(i, 0, 255);
+            }
+            if (value is string s && byte.TryParse(s, out byte result))
+            {
+                return result;
+            }
             return Convert.ToByte(value);
         }
 
@@ -587,13 +736,21 @@ namespace KnxMqttBridge.Services
         {
             TimeSpan time;
             if (value is TimeSpan ts)
+            {
                 time = ts;
+            }
             else if (value is DateTime dt)
+            {
                 time = dt.TimeOfDay;
+            }
             else if (value is string s && TimeSpan.TryParse(s, out var parsed))
+            {
                 time = parsed;
+            }
             else
+            {
                 return new byte[3];
+            }
 
             byte day = 0; // Day of week (0 = no day)
             byte hour = (byte)time.Hours;
@@ -653,7 +810,9 @@ namespace KnxMqttBridge.Services
             float val = value is float f ? f : Convert.ToSingle(value);
             byte[] bytes = BitConverter.GetBytes(val);
             if (BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(bytes);
+            }
             return bytes;
         }
 
@@ -688,7 +847,9 @@ namespace KnxMqttBridge.Services
             byte result = 0;
             // Simplified - just return scene number
             if (value is byte b)
+            {
                 result = (byte)(b & 0x3F);
+            }
             return result;
         }
 
