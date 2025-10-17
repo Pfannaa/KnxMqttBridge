@@ -96,7 +96,7 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> last()\n  |> group(columns: [\"Metadata_Name\"])",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] =~ /^DPST-1-/)\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> group(columns: [\"Metadata_Name\"])\n  |> last()",
           "refId": "A"
         }
       ],
@@ -263,11 +263,11 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "from(bucket: \"knx-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] == \"DPST-1-1\")\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> aggregateWindow(every: 5m, fn: count, createEmpty: false)",
+          "query": "from(bucket: \"knx-data\")\n  |> range(start: -6h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"knx\")\n  |> filter(fn: (r) => r[\"Metadata_DataPointType\"] =~ /^DPST-1-/)\n  |> filter(fn: (r) => r[\"_field\"] == \"Value\")\n  |> filter(fn: (r) => r[\"Metadata_Name\"] =~ /sr$/)\n  |> aggregateWindow(every: 5m, fn: count, createEmpty: false)",
           "refId": "A"
         }
       ],
-      "title": "💡 Light Events (Last Hour)",
+      "title": "💡 Light Events (Last 6 Hours)",
       "type": "barchart"
     },
     {
@@ -533,5 +533,5 @@
   "timezone": "",
   "title": "KNX Smart Home Dashboard",
   "uid": "knx-home",
-  "version": 1
+  "version": 2
 }
