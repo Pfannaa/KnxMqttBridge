@@ -44,11 +44,11 @@ namespace KnxMqttBridge
         {
             try
             {
-                await _knxService.StartListening(cancellationToken);
-                _knxService.GroupMessageReceived += KnxGroupMessageReceived;
-
                 await _mqttService.ConnectAsync(cancellationToken);
                 _mqttService.MessageReceived += MqttMessageReceived;
+
+                await _knxService.StartListening(cancellationToken);
+                _knxService.GroupMessageReceived += KnxGroupMessageReceived;
 
                 // Subscribe to command topics based on address style under GroupAddresses
                 var commandTopic = _knxConfiguration.AddressStyle == KnxAddressStyle.TwoLevel
