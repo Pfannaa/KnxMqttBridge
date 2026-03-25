@@ -24,7 +24,6 @@ namespace KnxMqttBridge.Services
             var factory = new MqttClientFactory();
             _mqttClient = factory.CreateMqttClient();
 
-            _mqttClient.DisconnectedAsync += OnDisconnectedAsync;
             _mqttClient.ConnectedAsync += OnConnectedAsync;
             _mqttClient.ApplicationMessageReceivedAsync += OnMessageReceivedAsync;
         }
@@ -37,37 +36,44 @@ namespace KnxMqttBridge.Services
                 return;
             }
 
-            try
+            while (!IsConnected)
             {
-                var cfg = _config.Value;
-                var optionsBuilder = new MqttClientOptionsBuilder()
-                    .WithTcpServer(cfg.BrokerHost, cfg.BrokerPort)
-                    .WithClientId(cfg.ClientId + "-" + Guid.NewGuid())
-                    .WithCleanSession(cfg.CleanSession)
-                    .WithKeepAlivePeriod(TimeSpan.FromSeconds(cfg.KeepAlivePeriod));
-
-                if (!string.IsNullOrEmpty(cfg.Username))
+                try
                 {
-                    optionsBuilder.WithCredentials(cfg.Username, cfg.Password);
+                    var cfg = _config.Value;
+                    var optionsBuilder = new MqttClientOptionsBuilder()
+                        .WithTcpServer(cfg.BrokerHost, cfg.BrokerPort)
+                        .WithClientId(cfg.ClientId + "-" + Guid.NewGuid())
+                        .WithCleanSession(cfg.CleanSession)
+                        .WithKeepAlivePeriod(TimeSpan.FromSeconds(cfg.KeepAlivePeriod));
+
+                    if (!string.IsNullOrEmpty(cfg.Username))
+                    {
+                        optionsBuilder.WithCredentials(cfg.Username, cfg.Password);
+                    }
+
+                    _logger.LogInformation("Connecting to MQTT broker at {Host}:{Port}", cfg.BrokerHost, cfg.BrokerPort);
+
+                    var result = await _mqttClient.ConnectAsync(optionsBuilder.Build(), cancellationToken);
+
+                    if (result.ResultCode == MqttClientConnectResultCode.Success)
+                    {
+                        _logger.LogInformation("Successfully connected to MQTT broker");
+                        _mqttClient.DisconnectedAsync -= OnDisconnectedAsync;
+                        _mqttClient.DisconnectedAsync += OnDisconnectedAsync;
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to connect to MQTT broker. Result: {Result}", result.ResultCode);
+                    }
                 }
-
-                _logger.LogInformation("Connecting to MQTT broker at {Host}:{Port}", cfg.BrokerHost, cfg.BrokerPort);
-
-                var result = await _mqttClient.ConnectAsync(optionsBuilder.Build(), cancellationToken);
-
-                if (result.ResultCode == MqttClientConnectResultCode.Success)
+                catch (Exception ex)
                 {
-                    _logger.LogInformation("Successfully connected to MQTT broker");
+                    _logger.LogError(ex, "Error connecting to MQTT broker");
+                    _logger.LogInformation("Retrying connection in 5 seconds...");
+
+                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
                 }
-                else
-                {
-                    _logger.LogError("Failed to connect to MQTT broker. Result: {Result}", result.ResultCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error connecting to MQTT broker");
-                throw;
             }
         }
 
@@ -124,29 +130,32 @@ namespace KnxMqttBridge.Services
 
         private async Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs args)
         {
+            _logger.LogWarning("MQTT client disconnected. Reason: {Reason}", args.Reason);
+
             try
             {
-                _logger.LogWarning("MQTT client disconnected. Reason: {Reason}", args.Reason);
-
-                if (!_disposed && args.Reason != MqttClientDisconnectReason.NormalDisconnection)
+                if (_disposed || args.Reason == MqttClientDisconnectReason.NormalDisconnection)
                 {
-                    _logger.LogInformation("Attempting to reconnect in 5 seconds...");
-                    await Task.Delay(TimeSpan.FromSeconds(5), CancellationToken.None);
+                    return;
+                }
 
-                    try
-                    {
-                        await ConnectAsync(CancellationToken.None);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to reconnect to MQTT broker. Will retry on next disconnection.");
-                    }
+                _logger.LogInformation("Attempting to reconnect in 5 seconds...");
+                await Task.Delay(TimeSpan.FromSeconds(5), CancellationToken.None);
+
+                try
+                {
+                    await ConnectAsync(CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to reconnect to MQTT broker.");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in MQTT disconnection handler");
             }
+
         }
 
         public async Task SubscribeAsync(string topic, CancellationToken cancellationToken = default)
