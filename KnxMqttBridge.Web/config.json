@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "xmlUrl": "/GroupAddresses.xml",
+    "mqttBrokerHost": "192.168.1.42",
+    "mqttWebSocketPort": 31901,
+    "mqttUsername": "",
+    "mqttPassword": "",
+    "topicPrefix": "knx",
+    "addressStyle": "ThreeLevel"
+  },
+  "uiConfig": {
+    "groups": [],
+    "items": [
+      {
+        "address": "2/1/71",
+        "label": "B\u00FCro Decke Licht s",
+        "group": null,
+        "order": 0
+      },
+      {
+        "address": "2/1/92",
+        "label": "K\u00FCche Decke Licht d",
+        "group": null,
+        "order": 1
+      },
+      {
+        "address": "2/1/91",
+        "label": "K\u00FCche Decke Licht s",
+        "group": null,
+        "order": 2
+      },
+      {
+        "address": "2/1/93",
+        "label": "K\u00FCche Decke Licht w",
+        "group": null,
+        "order": 3
+      },
+      {
+        "address": "2/1/94",
+        "label": "K\u00FCche Decke Licht wr",
+        "group": null,
+        "order": 4
+      },
+      {
+        "address": "2/1/95",
+        "label": "K\u00FCche Decke Licht sr",
+        "group": null,
+        "order": 5
+      },
+      {
+        "address": "1/0/1",
+        "label": "Systemzeit wr",
+        "group": null,
+        "order": 6
+      }
+    ]
+  }
+}

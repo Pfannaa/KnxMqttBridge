@@ -66,3 +66,19 @@ services:
       - Mqtt__BrokerPort=1883
     volumes:
       - ${HOME}/KnxMqttBridge/GroupAddresses.xml:/app/GroupAddresses.xml:ro
+
+  # Touch Dashboard (React + ASP.NET Core)
+  knxmqttbridge-ui:
+    build:
+      context: ../KnxMqttBridge.Web
+      dockerfile: Dockerfile
+    container_name: knxmqttbridge-ui
+    network_mode: host
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - Web__XmlPath=/data/GroupAddresses.xml
+      - Web__ConfigPath=/data/config.json
+    volumes:
+      - ${HOME}/KnxMqttBridge/GroupAddresses.xml:/data/GroupAddresses.xml:ro
+      - ${HOME}/KnxMqttBridge/ui-config:/data
+    restart: unless-stopped
