@@ -13,14 +13,21 @@ export function useMqtt(settings: FrontendSettings | null) {
 
     topicPrefixRef.current = settings.topicPrefix;
 
-    const url = `ws://${settings.mqttBrokerHost}:${settings.mqttWebSocketPort}/mqtt`;
-    const client = mqtt.connect(url, {
-      username: settings.mqttUsername || undefined,
-      password: settings.mqttPassword || undefined,
-      clientId: `knx-ui-${Math.random().toString(16).slice(2, 10)}`,
-      reconnectPeriod: 3000,
-      connectTimeout: 5000,
-    });
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const url = `${protocol}://${settings.mqttBrokerHost}:${settings.mqttWebSocketPort}/mqtt`;
+
+    let client: ReturnType<typeof mqtt.connect>;
+    try {
+      client = mqtt.connect(url, {
+        username: settings.mqttUsername || undefined,
+        password: settings.mqttPassword || undefined,
+        clientId: `knx-ui-${Math.random().toString(16).slice(2, 10)}`,
+        reconnectPeriod: 3000,
+        connectTimeout: 5000,
+      });
+    } catch {
+      return;
+    }
 
     client.on('connect', () => {
       setConnected(true);
