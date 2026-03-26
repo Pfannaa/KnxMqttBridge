@@ -2,10 +2,10 @@
 
 A bidirectional bridge between KNX (via Gira X1 Gateway) and MQTT, enabling integration with home automation systems like Home Assistant, Node-RED, and more.
 
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![.NET Tests](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml)
 [![KNX](https://img.shields.io/badge/KNX-IP%20Tunneling-00A9CE)](https://www.knx.org/)
-[![MQTT](https://img.shields.io/badge/MQTT-3.1.1-660066)](https://mqtt.org/)
+[![MQTT](https://img.shields.io/badge/MQTT-5.0-660066)](https://mqtt.org/)
 
 ## Features
 
@@ -604,16 +604,16 @@ KnxMqttBridge/
 │   ├── Abstractions/    # Service interfaces
 │   ├── KnxService.cs    # KNX communication (auto-discovery)
 │   ├── MqttService.cs   # MQTT communication
-│   └── KnxValueEncoder.cs  # DPT encoding logic
+│   └── KnxDataPointService.cs  # DPT encoding/decoding logic
 ├── Infrastructure/      # Configuration & XML models
 ├── Worker.cs           # Main orchestration
 └── Program.cs          # Application entry point
 ```
 
 **Technology Stack:**
-- .NET
+- .NET 10
 - Knx.Falcon (KNX/IP protocol)
-- MQTTnet (MQTT client)
+- MQTTnet 5.x (MQTT 5.0 client)
 
 ---
 
@@ -626,15 +626,14 @@ A: Yes! Works with any KNX/IP interface supporting tunneling (e.g., KNX IP Route
 A: This is intentional - the gateway filters telegrams from the same connection to prevent loops.
 
 **Q: How do I add support for additional DPT types?**
-A: Add encoding logic to `KnxValueEncoder.cs`:
+A: Add encoding and decoding logic to `KnxDataPointService.cs`. Add new `else if` branches in the `EncodeValue` and `DecodeByDataPointType` methods:
 
 ```csharp
-return dataPointType switch
+// In EncodeValue and DecodeByDataPointType methods:
+else if (dataPointType.StartsWith("DPST-X-") || dataPointType.StartsWith("DPT-X"))
 {
-    "DPST-X-Y" => EncodeYourCustomType(value),
-    // ... existing types
-    _ => null
-};
+    return EncodeYourCustomType(value);  // or DecodeYourCustomType(rawValue)
+}
 ```
 
 **Q: Can I run multiple bridges?**
