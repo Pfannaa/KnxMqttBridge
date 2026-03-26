@@ -14,16 +14,18 @@ namespace KnxMqttBridge.Models
         public string? Security { get; set; }
 
         /// <summary>
-        /// Parse the KNX address into its components (main/middle/sub)
+        /// Parse the KNX address into its components.
+        /// For three-level addresses (main/middle/sub), Middle is populated.
+        /// For two-level addresses (main/sub), Middle is null.
         /// </summary>
-        public (int Main, int Middle, int Sub) ParseAddress()
+        public (int Main, int? Middle, int Sub) ParseAddress()
         {
             var parts = Address.Split('/');
-            return (
-                int.Parse(parts[0]),
-                int.Parse(parts[1]),
-                int.Parse(parts[2])
-            );
+            if (parts.Length == 2)
+            {
+                return (int.Parse(parts[0]), null, int.Parse(parts[1]));
+            }
+            return (int.Parse(parts[0]), int.Parse(parts[1]), int.Parse(parts[2]));
         }
 
         public override string ToString()

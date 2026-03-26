@@ -32,6 +32,30 @@ namespace KnxMqttBridge.Tests
             Assert.Equal(expectedSub, sub);
         }
 
+        [Theory]
+        [InlineData("0/1", 0, 1)]
+        [InlineData("2/71", 2, 71)]
+        [InlineData("31/255", 31, 255)]
+        public void ParseAddress_ValidTwoLevelAddress_ReturnsNullMiddle(
+            string address, int expectedMain, int expectedSub)
+        {
+            var groupAddress = new KnxGroupAddress
+            {
+                Name = "Test",
+                Address = address,
+                DataPointType = "DPST-1-1",
+                Category = "Test",
+                Subcategory = "Test",
+                FullPath = "Test/Test"
+            };
+
+            var (main, middle, sub) = groupAddress.ParseAddress();
+
+            Assert.Equal(expectedMain, main);
+            Assert.Null(middle);
+            Assert.Equal(expectedSub, sub);
+        }
+
         #endregion
 
         #region ToString Tests
