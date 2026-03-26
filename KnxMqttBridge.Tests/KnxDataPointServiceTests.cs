@@ -280,5 +280,39 @@ namespace KnxMqttBridge.Tests
         }
 
         #endregion
+
+        #region DecodeDate Year Mapping Tests
+
+        [Theory]
+        [InlineData(0,  2000)]   // min spec value
+        [InlineData(89, 2089)]   // top of 2000-range
+        [InlineData(90, 1990)]   // bottom of 1990-range
+        [InlineData(99, 1999)]   // max spec value
+        public void DecodeDate_YearByte_MapsToCorrectYear(byte rawYear, int expectedYear)
+        {
+            // DPT 11.001: day=1, month=1, year=rawYear
+            var data = new byte[] { 0x01, 0x01, rawYear };
+            var result = (string)_service.DecodeValue(data, "DPST-11-1");
+            Assert.StartsWith(expectedYear.ToString(), result);
+        }
+
+        #endregion
+
+        #region EncodeDate/DecodeDate Roundtrip Tests
+
+        [Theory]
+        [InlineData(2000, 1, 1)]
+        [InlineData(2089, 12, 31)]
+        [InlineData(1990, 6, 15)]
+        [InlineData(1999, 3, 20)]
+        public void EncodeDecodeDate_Roundtrip(int year, int month, int day)
+        {
+            var date = new DateTime(year, month, day);
+            var encoded = (byte[])_service.EncodeValue(date, "DPST-11-1");
+            var decoded = (string)_service.DecodeValue(encoded, "DPST-11-1");
+            Assert.Equal($"{year:D4}-{month:D2}-{day:D2}", decoded);
+        }
+
+        #endregion
     }
 }
