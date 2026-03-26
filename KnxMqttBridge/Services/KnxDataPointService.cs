@@ -1,6 +1,7 @@
 using KnxMqttBridge.Models;
 using KnxMqttBridge.Services.Abstractions;
 using System.Text;
+using System.Text.Json;
 
 namespace KnxMqttBridge.Services
 {
@@ -41,7 +42,7 @@ namespace KnxMqttBridge.Services
             try
             {
                 // DPT 1.x - Boolean
-                if (dataPointType.StartsWith("DPST-1-") || dataPointType.StartsWith("DPT-1"))
+                if (dataPointType.StartsWith("DPST-1-") || dataPointType.StartsWith("DPT-1-") || dataPointType == "DPT-1")
                 {
                     return EncodeBoolean(value);
                 }
@@ -172,7 +173,7 @@ namespace KnxMqttBridge.Services
             try
             {
                 // DPT 1.x - Boolean
-                if (dataPointType.StartsWith("DPST-1-") || dataPointType.StartsWith("DPT-1"))
+                if (dataPointType.StartsWith("DPST-1-") || dataPointType.StartsWith("DPT-1-") || dataPointType == "DPT-1")
                 {
                     return DecodeBoolean(rawValue);
                 }
@@ -473,11 +474,12 @@ namespace KnxMqttBridge.Services
             {
                 return 0;
             }
+            var bytes = data[..4];
             if (BitConverter.IsLittleEndian)
             {
-                Array.Reverse(data);
+                Array.Reverse(bytes);
             }
-            return BitConverter.ToSingle(data, 0);
+            return BitConverter.ToSingle(bytes, 0);
         }
 
         // DPT 15.x - Entrance access
@@ -590,35 +592,17 @@ namespace KnxMqttBridge.Services
 
             if (value is string json)
             {
-                // Parse JSON for dimming control
-                var parts = json.Replace("{", "").Replace("}", "").Replace("\"", "").Split(',');
-                bool isUp = false;
-                int steps = 0;
-
-                foreach (var part in parts)
+                var cmd = JsonSerializer.Deserialize<DimCommand>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (cmd != null)
                 {
-                    var kv = part.Split(':');
-                    if (kv.Length == 2)
+                    bool isUp = string.Equals(cmd.Direction, "up", StringComparison.OrdinalIgnoreCase)
+                             || string.Equals(cmd.Direction, "increase", StringComparison.OrdinalIgnoreCase);
+                    if (isUp)
                     {
-                        var key = kv[0].Trim().ToLower();
-                        var val = kv[1].Trim().ToLower();
-
-                        if (key == "direction")
-                        {
-                            isUp = val == "up" || val == "increase";
-                        }
-                        else if (key == "steps")
-                        {
-                            int.TryParse(val, out steps);
-                        }
+                        encoded |= 0x08;
                     }
+                    encoded |= (byte)(cmd.Steps & 0x07);
                 }
-
-                if (isUp)
-                {
-                    encoded |= 0x08;
-                }
-                encoded |= (byte)(steps & 0x07);
             }
 
             return (encoded, 4); // 4-bit value
@@ -844,13 +828,24 @@ namespace KnxMqttBridge.Services
         private byte EncodeSceneControl(object value)
         {
             // Expected format: { "Learn": true/false, "SceneNumber": 0-63 }
-            byte result = 0;
-            // Simplified - just return scene number
-            if (value is byte b)
+            if (value is string json)
             {
-                result = (byte)(b & 0x3F);
+                var cmd = JsonSerializer.Deserialize<SceneControlCommand>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (cmd != null)
+                {
+                    return (byte)((cmd.Learn ? 0x80 : 0) | (cmd.SceneNumber & 0x3F));
+                }
             }
-            return result;
+
+            // Backward compat: plain integer/byte
+            byte scene = value is byte b ? b : Convert.ToByte(value);
+            return (byte)(scene & 0x3F);
+        }
+
+        private class SceneControlCommand
+        {
+            public bool Learn { get; set; }
+            public int SceneNumber { get; set; }
         }
 
         // DPT 19.x - DateTime
