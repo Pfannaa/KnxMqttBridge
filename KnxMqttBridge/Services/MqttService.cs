@@ -12,6 +12,7 @@ namespace KnxMqttBridge.Services
         private readonly ILogger<MqttService> _logger;
         private readonly IMqttClient _mqttClient;
         private readonly List<string> _subscriptions = [];
+        private readonly object _subscriptionsLock = new();
         private bool _disposed;
 
         public bool IsConnected => _mqttClient?.IsConnected ?? false;
@@ -128,11 +129,18 @@ namespace KnxMqttBridge.Services
         {
             _logger.LogInformation("MQTT client connected");
 
-            if (_subscriptions.Count == 0)
-                return;
+            List<string> topicsToRestore;
+            lock (_subscriptionsLock)
+            {
+                if (_subscriptions.Count == 0)
+                {
+                    return;
+                }
+                topicsToRestore = [.. _subscriptions];
+            }
 
-            _logger.LogInformation("Restoring {Count} MQTT subscription(s) after reconnect", _subscriptions.Count);
-            foreach (var topic in _subscriptions)
+            _logger.LogInformation("Restoring {Count} MQTT subscription(s) after reconnect", topicsToRestore.Count);
+            foreach (var topic in topicsToRestore)
             {
                 try
                 {
@@ -188,8 +196,13 @@ namespace KnxMqttBridge.Services
 
             var fullTopic = string.IsNullOrEmpty(_config.Value.TopicPrefix) ? topic : $"{_config.Value.TopicPrefix}/{topic}";
 
-            if (!_subscriptions.Contains(fullTopic))
-                _subscriptions.Add(fullTopic);
+            lock (_subscriptionsLock)
+            {
+                if (!_subscriptions.Contains(fullTopic))
+                {
+                    _subscriptions.Add(fullTopic);
+                }
+            }
 
             _logger.LogInformation("Subscribing to MQTT topic: {Topic}", fullTopic);
 
