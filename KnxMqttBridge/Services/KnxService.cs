@@ -9,14 +9,16 @@ using Microsoft.Extensions.Options;
 
 namespace KnxMqttBridge.Services
 {
-    internal class KnxService : IKnxService
+    internal class KnxService : IKnxService, IDisposable
     {
         public event EventHandler<GroupEventArgs> GroupMessageReceived;
 
         private readonly IOptions<GroupAddressInformation> _groupAddressInformation;
         private readonly IOptions<KnxConfiguration> _knxConfiguration;
         private readonly ILogger<KnxService> _logger;
-        private KnxBus _bus;
+        private KnxBus? _bus;
+        private bool _disposed;
+        private EventHandler<GroupEventArgs>? _busEventHandler;
 
         public KnxService(
             IOptions<GroupAddressInformation> groupAddressInformation,
@@ -87,12 +89,13 @@ namespace KnxMqttBridge.Services
 
                 _logger.LogInformation("Successfully connected to KNX bus");
 
-                _bus.GroupMessageReceived += (sender, args) =>
+                _busEventHandler = (sender, args) =>
                 {
                     _logger.LogDebug("Received KNX telegram - Destination: {Destination}, Source: {Source}, Type: {Type}",
                         args.DestinationAddress, args.SourceAddress, args.EventType);
                     GroupMessageReceived?.Invoke(this, args);
                 };
+                _bus.GroupMessageReceived += _busEventHandler;
             }
             catch (Exception ex)
             {
@@ -155,6 +158,15 @@ namespace KnxMqttBridge.Services
                 _logger.LogError(ex, "Failed to write value to KNX address {Address}", groupAddress);
                 throw;
             }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            _bus?.Dispose();
         }
     }
 }
