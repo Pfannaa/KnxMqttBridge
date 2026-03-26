@@ -443,7 +443,8 @@ namespace KnxMqttBridge.Services
             }
             int day = data[0] & 0x1F;
             int month = data[1] & 0x0F;
-            int year = 2000 + (data[2] & 0x7F);
+            int rawYear = data[2] & 0x7F;
+            int year = rawYear >= 90 ? 1900 + rawYear : 2000 + rawYear;
             return $"{year:D4}-{month:D2}-{day:D2}";
         }
 
@@ -754,9 +755,13 @@ namespace KnxMqttBridge.Services
         {
             DateTime date = value is DateTime dt ? dt : Convert.ToDateTime(value);
 
+            if (date.Year < 1990 || date.Year > 2089)
+                throw new ArgumentOutOfRangeException(nameof(value), $"Year {date.Year} is outside the KNX DPT 11.001 supported range (1990-2089)");
+
             byte day = (byte)date.Day;
             byte month = (byte)date.Month;
-            byte year = (byte)(date.Year - 2000);
+            int y = date.Year;
+            byte year = y >= 2000 ? (byte)(y - 2000) : (byte)(y - 1900);
 
             return new byte[] { day, month, year };
         }
