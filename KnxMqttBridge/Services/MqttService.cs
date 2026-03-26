@@ -96,7 +96,8 @@ namespace KnxMqttBridge.Services
         {
             if (!IsConnected)
             {
-                throw new InvalidOperationException("MQTT client is not connected");
+                _logger.LogWarning("Dropping publish to {Topic}: MQTT client is not connected", topic);
+                return;
             }
 
             try
