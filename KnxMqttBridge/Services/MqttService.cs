@@ -11,6 +11,7 @@ namespace KnxMqttBridge.Services
         private readonly IOptions<MqttConfiguration> _config;
         private readonly ILogger<MqttService> _logger;
         private readonly IMqttClient _mqttClient;
+        private readonly List<string> _subscriptions = [];
         private bool _disposed;
 
         public bool IsConnected => _mqttClient?.IsConnected ?? false;
@@ -122,10 +123,29 @@ namespace KnxMqttBridge.Services
             }
         }
 
-        private Task OnConnectedAsync(MqttClientConnectedEventArgs args)
+        private async Task OnConnectedAsync(MqttClientConnectedEventArgs args)
         {
             _logger.LogInformation("MQTT client connected");
-            return Task.CompletedTask;
+
+            if (_subscriptions.Count == 0)
+                return;
+
+            _logger.LogInformation("Restoring {Count} MQTT subscription(s) after reconnect", _subscriptions.Count);
+            foreach (var topic in _subscriptions)
+            {
+                try
+                {
+                    var subscribeOptions = new MqttClientSubscribeOptionsBuilder()
+                        .WithTopicFilter(topic)
+                        .Build();
+                    await _mqttClient.SubscribeAsync(subscribeOptions, CancellationToken.None);
+                    _logger.LogInformation("Restored subscription to {Topic}", topic);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to restore subscription to {Topic}", topic);
+                }
+            }
         }
 
         private async Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs args)
@@ -166,6 +186,9 @@ namespace KnxMqttBridge.Services
             }
 
             var fullTopic = string.IsNullOrEmpty(_config.Value.TopicPrefix) ? topic : $"{_config.Value.TopicPrefix}/{topic}";
+
+            if (!_subscriptions.Contains(fullTopic))
+                _subscriptions.Add(fullTopic);
 
             _logger.LogInformation("Subscribing to MQTT topic: {Topic}", fullTopic);
 
