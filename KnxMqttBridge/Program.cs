@@ -43,7 +43,13 @@ namespace KnxMqttBridge
                         {
                             var serializer = new XmlSerializer(typeof(GroupAddressExport));
                             using var fileStream = File.OpenRead(xmlPath);
-                            var xmlExport = (GroupAddressExport)serializer.Deserialize(fileStream);
+                            var xmlExport = serializer.Deserialize(fileStream) as GroupAddressExport;
+                            if (xmlExport == null)
+                            {
+                                Console.WriteLine($"[Program] Warning: ETS export file at {xmlPath} could not be parsed (empty or invalid XML)");
+                                Console.WriteLine("[Program] Bridge will run without ETS configuration using heuristic decoding");
+                                return;
+                            }
 
                             // Convert to simplified model
                             var simplified = GroupAddressInformation.FromXmlExport(xmlExport);
@@ -71,9 +77,6 @@ namespace KnxMqttBridge
             builder.Services.AddSingleton<IKnxDataPointService, KnxDataPointService>();
             builder.Services.AddSingleton<IMqttTopicParser, MqttTopicParser>();
             builder.Services.AddSingleton<IKnxCommandHandler, KnxCommandHandler>();
-
-            // Keep legacy encoder for backward compatibility (can be removed later)
-            builder.Services.AddSingleton<IKnxValueEncoder, KnxValueEncoder>();
 
             var host = builder.Build();
             host.Run();
