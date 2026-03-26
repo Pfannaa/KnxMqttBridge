@@ -11,6 +11,8 @@ namespace KnxMqttBridge
 {
     public class Worker : BackgroundService
     {
+        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
+
         private readonly ILogger<Worker> _logger;
         private readonly IKnxService _knxService;
         private readonly IMqttService _mqttService;
@@ -117,7 +119,7 @@ namespace KnxMqttBridge
                 // ThreeLevel: knx/GroupAddresses/{main}/{middle}/{sub}/notification
                 // TwoLevel: knx/GroupAddresses/{main}/{sub}/notification
                 var topic = $"GroupAddresses/{destinationAddress}/notification";
-                var payload = JsonSerializer.Serialize(knxEvent, new JsonSerializerOptions { WriteIndented = false });
+                var payload = JsonSerializer.Serialize(knxEvent, JsonOptions);
                 await _mqttService.PublishAsync(topic, payload, retain: true);
             }
             catch (Exception ex)
