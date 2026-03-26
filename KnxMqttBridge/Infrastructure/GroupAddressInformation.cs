@@ -29,7 +29,10 @@ namespace KnxMqttBridge.Infrastructure
             List<KnxGroupAddress> addresses,
             string parentPath)
         {
-            if (range.GroupRange == null) return;
+            if (range.GroupRange == null)
+            {
+                return;
+            }
 
             foreach (var subRange in range.GroupRange)
             {
