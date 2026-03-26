@@ -139,21 +139,29 @@ namespace KnxMqttBridge
 
                 // Parse KNX address from topic
                 if (!_mqttTopicParser.TryParseAddressFromTopic(topic, out var address))
+                {
                     return;
+                }
 
                 _logger.LogInformation("Extracted KNX address from topic: {Address}", address);
 
                 // Deserialize command
                 if (!_mqttTopicParser.TryDeserializeCommand(payload, out var command))
+                {
                     return;
+                }
 
                 // Resolve data point type
                 if (!_knxCommandHandler.TryResolveDataPointType(address, command, out var dataPointType))
+                {
                     return;
+                }
 
                 // Encode value for KNX
                 if (!_knxCommandHandler.TryEncodeValue(command.Value, dataPointType, out var encodedValue))
+                {
                     return;
+                }
 
                 _logger.LogInformation("Encoded value: {EncodedValue} ({Type}) for KNX address {Address}",
                     encodedValue, encodedValue.GetType().Name, address);
