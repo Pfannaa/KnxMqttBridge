@@ -199,6 +199,34 @@ namespace KnxMqttBridge.Tests
             Assert.IsType<string>(result);
         }
 
+        [Fact]
+        public void DecodeFloat32_DoesNotMutateInputArray()
+        {
+            var original = new byte[] { 0x42, 0x48, 0x00, 0x00 }; // 50.0f in big-endian IEEE 754
+            var copy = original.ToArray();
+
+            _service.DecodeValue(original, "DPST-14-1");
+
+            Assert.Equal(copy, original); // array should NOT have been reversed
+        }
+
+        [Fact]
+        public void DecodeValue_Dpt10_IsNotDecodedAsBoolean()
+        {
+            var data = new byte[] { 0x0A, 0x1E, 0x3C }; // 10:30:60 as time
+            var result = _service.DecodeValue(data, "DPT-10");
+
+            // Should NOT be 0 or 1 (boolean), should be a time string
+            Assert.IsType<string>(result);
+        }
+
+        [Fact]
+        public void DecodeValue_Dpt1_DecodesAsBoolean()
+        {
+            Assert.Equal(1, _service.DecodeValue(new byte[] { 0x01 }, "DPT-1"));
+            Assert.Equal(0, _service.DecodeValue(new byte[] { 0x00 }, "DPT-1"));
+        }
+
         #endregion
 
         #region All DPT Type Coverage
