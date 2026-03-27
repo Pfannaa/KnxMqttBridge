@@ -26,9 +26,12 @@ export function useMqtt(settings: FrontendSettings | null) {
         reconnectPeriod: 3000,
         connectTimeout: 5000,
       });
-    } catch {
+    } catch (err) {
+      setError(`Failed to connect to ${url}: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
+
+    client.on('reconnect', () => setError(null));
 
     client.on('connect', () => {
       setConnected(true);
@@ -41,7 +44,14 @@ export function useMqtt(settings: FrontendSettings | null) {
       setConnected(false);
       setError(err.message);
     });
-    client.on('offline', () => setConnected(false));
+    client.on('offline', () => {
+      setConnected(false);
+      setError((prev) => prev ?? `Offline — cannot reach ${url}`);
+    });
+    client.on('close', () => {
+      setConnected(false);
+      setError((prev) => prev ?? `Connection to ${url} closed`);
+    });
 
     client.on('message', (topic: string, payload: Buffer) => {
       if (!topic.endsWith('/notification')) return;

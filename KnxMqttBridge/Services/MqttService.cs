@@ -14,6 +14,7 @@ namespace KnxMqttBridge.Services
         private readonly List<string> _subscriptions = [];
         private readonly object _subscriptionsLock = new();
         private bool _disposed;
+        private bool _disconnectingIntentionally;
 
         public bool IsConnected => _mqttClient?.IsConnected ?? false;
         public event Func<MqttApplicationMessageReceivedEventArgs, Task> MessageReceived;
@@ -83,6 +84,7 @@ namespace KnxMqttBridge.Services
         {
             if (IsConnected)
             {
+                _disconnectingIntentionally = true;
                 _logger.LogInformation("Disconnecting from MQTT broker");
                 await _mqttClient.DisconnectAsync(cancellationToken: cancellationToken);
             }
@@ -163,8 +165,9 @@ namespace KnxMqttBridge.Services
 
             try
             {
-                if (_disposed || args.Reason == MqttClientDisconnectReason.NormalDisconnection)
+                if (_disposed || _disconnectingIntentionally)
                 {
+                    _disconnectingIntentionally = false;
                     return;
                 }
 
