@@ -86,7 +86,7 @@ export function AddressCard({ item, value, onPublish, dragHandleProps }: Props) 
         </span>
       </div>
 
-      <div className="flex-1 flex items-center justify-center min-h-[56px]">
+      <div className="flex items-center justify-center h-24 w-full">
         {renderControl(item, value, onPublish)}
       </div>
     </div>
