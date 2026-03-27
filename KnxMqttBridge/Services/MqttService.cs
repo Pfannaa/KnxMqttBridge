@@ -28,6 +28,7 @@ namespace KnxMqttBridge.Services
             _mqttClient = factory.CreateMqttClient();
 
             _mqttClient.ConnectedAsync += OnConnectedAsync;
+            _mqttClient.DisconnectedAsync += OnDisconnectedAsync;
             _mqttClient.ApplicationMessageReceivedAsync += OnMessageReceivedAsync;
         }
 
@@ -59,13 +60,7 @@ namespace KnxMqttBridge.Services
 
                     var result = await _mqttClient.ConnectAsync(optionsBuilder.Build(), cancellationToken);
 
-                    if (result.ResultCode == MqttClientConnectResultCode.Success)
-                    {
-                        _logger.LogInformation("Successfully connected to MQTT broker");
-                        _mqttClient.DisconnectedAsync -= OnDisconnectedAsync;
-                        _mqttClient.DisconnectedAsync += OnDisconnectedAsync;
-                    }
-                    else
+                    if (result.ResultCode != MqttClientConnectResultCode.Success)
                     {
                         _logger.LogError("Failed to connect to MQTT broker. Result: {Result}", result.ResultCode);
                     }
@@ -171,6 +166,12 @@ namespace KnxMqttBridge.Services
                     return;
                 }
 
+                // MQTTnet v5 fires DisconnectedAsync both when an established connection drops
+                // AND when a ConnectAsync() attempt fails. Only trigger a new reconnect loop
+                // in the first case — the while loop in ConnectAsync() already handles retries.
+                if (!args.ClientWasConnected)
+                    return;
+
                 _logger.LogInformation("Attempting to reconnect in 5 seconds...");
                 await Task.Delay(TimeSpan.FromSeconds(5), CancellationToken.None);
 
@@ -187,7 +188,6 @@ namespace KnxMqttBridge.Services
             {
                 _logger.LogError(ex, "Error in MQTT disconnection handler");
             }
-
         }
 
         public async Task SubscribeAsync(string topic, CancellationToken cancellationToken = default)
