@@ -28,4 +28,5 @@ public class UiConfigItem
     public string? Label { get; set; }
     public string? Group { get; set; }
     public int Order { get; set; }
+    public string? ResponseAddress { get; set; }
 }
