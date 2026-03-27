@@ -1,5 +1,57 @@
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useState, useMemo } from 'react';
 import type { KnxAddress, UiConfig, UiConfigItem } from '../types';
+
+function SortableGroupRow({ name, onRemove }: { name: string; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: name });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="text-slate-500 hover:text-slate-300 cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Ziehen zum Sortieren"
+      >
+        ⠿
+      </button>
+      <span className="flex-1 text-white text-sm">{name}</span>
+      <button
+        onClick={onRemove}
+        className="text-slate-500 hover:text-red-400 text-lg leading-none"
+        aria-label={`${name} entfernen`}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
 
 interface Props {
   addresses: KnxAddress[];
@@ -36,6 +88,23 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
     }
     return map;
   }, [addresses, search]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
+
+  const handleGroupDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setGroups((prev) => {
+      const oldIndex = prev.indexOf(active.id as string);
+      const newIndex = prev.indexOf(over.id as string);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
+  const sortedGroups = useMemo(() => [...groups].sort((a, b) => a.localeCompare(b)), [groups]);
 
   const addGroup = () => {
     const name = newGroup.trim();
@@ -126,24 +195,19 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
         {/* Group management */}
         <section>
           <h2 className="text-brand-500 font-bold text-sm uppercase tracking-wider mb-3">Gruppen</h2>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {groups.map((g) => (
-              <div key={g} className="flex items-center gap-1 bg-slate-800 border border-slate-600
-                                      rounded-lg px-3 py-1.5">
-                <span className="text-white text-sm">{g}</span>
-                <button
-                  onClick={() => removeGroup(g)}
-                  className="text-slate-500 hover:text-red-400 text-lg leading-none ml-1"
-                  aria-label={`${g} entfernen`}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-            {groups.length === 0 && (
-              <p className="text-slate-500 text-sm">Noch keine Gruppen. Erstelle zuerst eine Gruppe.</p>
-            )}
-          </div>
+          {groups.length === 0 ? (
+            <p className="text-slate-500 text-sm mb-3">Noch keine Gruppen. Erstelle zuerst eine Gruppe.</p>
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+              <SortableContext items={groups} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-2 mb-3">
+                  {groups.map((g) => (
+                    <SortableGroupRow key={g} name={g} onRemove={() => removeGroup(g)} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
           <div className="flex gap-2">
             <input
               type="text"
@@ -224,7 +288,7 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                                                text-white text-sm focus:outline-none focus:border-brand-500"
                                   >
                                     <option value="">Keine Gruppe</option>
-                                    {groups.map((g) => (
+                                    {sortedGroups.map((g) => (
                                       <option key={g} value={g}>{g}</option>
                                     ))}
                                   </select>
