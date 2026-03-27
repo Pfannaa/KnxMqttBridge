@@ -14,9 +14,127 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X, Check } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { GripVertical, X, Check, Link2, Link2Off } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
 import type { KnxAddress, UiConfig, UiConfigItem } from '../types';
+
+function commonPrefixLength(a: string, b: string): number {
+  const la = a.toLowerCase();
+  const lb = b.toLowerCase();
+  let i = 0;
+  while (i < la.length && i < lb.length && la[i] === lb[i]) i++;
+  return i;
+}
+
+function ResponseAddressPicker({
+  commandAddress,
+  responseAddress,
+  allAddresses,
+  onSelect,
+  onClear,
+}: {
+  commandAddress: string;
+  responseAddress: string | undefined;
+  allAddresses: KnxAddress[];
+  onSelect: (address: string) => void;
+  onClear: () => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const commandAddr = allAddresses.find((a) => a.address === commandAddress);
+  const selectedAddr = allAddresses.find((a) => a.address === responseAddress);
+
+  const suggestions = useMemo(() => {
+    if (!commandAddr) return [];
+    return allAddresses
+      .filter((a) => a.address !== commandAddress)
+      .map((a) => ({ addr: a, score: commonPrefixLength(commandAddr.name, a.name) }))
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map((x) => x.addr);
+  }, [commandAddr, allAddresses, commandAddress]);
+
+  const searchResults = useMemo(() => {
+    if (!search.trim()) return [];
+    const q = search.toLowerCase();
+    return allAddresses
+      .filter(
+        (a) =>
+          a.address !== commandAddress &&
+          (a.name.toLowerCase().includes(q) || a.address.includes(q)),
+      )
+      .slice(0, 8);
+  }, [search, allAddresses, commandAddress]);
+
+  if (responseAddress) {
+    return (
+      <div className="flex items-center gap-2 bg-zinc-700/50 rounded-lg px-3 py-1.5 min-w-0">
+        <Link2 className="w-3.5 h-3.5 text-brand-400 shrink-0" strokeWidth={1.75} />
+        <span className="flex-1 text-white text-sm truncate">
+          {selectedAddr?.name ?? responseAddress}
+        </span>
+        <span className="text-zinc-500 font-mono text-xs shrink-0">{responseAddress}</span>
+        <button
+          onClick={onClear}
+          className="text-zinc-500 hover:text-red-400 transition-colors shrink-0"
+          aria-label="Clear response address"
+        >
+          <X className="w-3.5 h-3.5" strokeWidth={1.75} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {suggestions.map((s) => (
+            <button
+              key={s.address}
+              onClick={(e) => { e.stopPropagation(); onSelect(s.address); }}
+              className="flex flex-col items-start px-2 py-1 rounded-md bg-zinc-700 hover:bg-zinc-600 transition-colors text-left"
+            >
+              <span className="text-xs text-zinc-200 max-w-[160px] truncate">{s.name}</span>
+              <span className="text-zinc-500 font-mono text-xs">{s.address}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="relative" onClick={(e) => e.stopPropagation()}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={search}
+          placeholder="Search response address..."
+          onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
+                     text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-brand-500"
+          style={{ userSelect: 'auto', WebkitUserSelect: 'auto' }}
+        />
+        {open && searchResults.length > 0 && (
+          <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-zinc-800 border border-zinc-700 rounded-lg overflow-hidden shadow-xl">
+            {searchResults.map((r) => (
+              <button
+                key={r.address}
+                onMouseDown={() => { onSelect(r.address); setSearch(''); setOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-700 transition-colors text-left"
+              >
+                <span className="flex-1 text-white text-sm truncate">{r.name}</span>
+                <span className="text-zinc-500 font-mono text-xs shrink-0">{r.address}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function SortableGroupRow({ name, onRemove }: { name: string; onRemove: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -161,6 +279,15 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
     });
   };
 
+  const setResponseAddress = (address: string, responseAddress: string | undefined) => {
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const item = next.get(address);
+      if (item) next.set(address, { ...item, responseAddress });
+      return next;
+    });
+  };
+
   const handleSave = () => {
     const items = Array.from(selected.values()).map((item, i) => ({ ...item, order: i }));
     onSave({ groups, items });
@@ -270,29 +397,44 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                               </div>
 
                               {isSelected && (
-                                <div className="px-3 pb-3 pt-0 pl-3 sm:pl-12 flex flex-col sm:flex-row gap-2">
-                                  <input
-                                    type="text"
-                                    value={item?.label ?? addr.name}
-                                    placeholder="Display name..."
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(e) => setLabel(addr.address, e.target.value)}
-                                    className="flex-1 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
-                                               text-white text-sm focus:outline-none focus:border-brand-500"
-                                    style={{ userSelect: 'auto', WebkitUserSelect: 'auto' }}
-                                  />
-                                  <select
-                                    value={item?.group ?? ''}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(e) => setGroup(addr.address, e.target.value)}
-                                    className="w-full sm:w-36 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
-                                               text-white text-sm focus:outline-none focus:border-brand-500"
-                                  >
-                                    <option value="">No group</option>
-                                    {sortedGroups.map((g) => (
-                                      <option key={g} value={g}>{g}</option>
-                                    ))}
-                                  </select>
+                                <div className="px-3 pb-3 pt-0 pl-3 sm:pl-12 flex flex-col gap-2">
+                                  <div className="flex flex-col sm:flex-row gap-2">
+                                    <input
+                                      type="text"
+                                      value={item?.label ?? addr.name}
+                                      placeholder="Display name..."
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => setLabel(addr.address, e.target.value)}
+                                      className="flex-1 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
+                                                 text-white text-sm focus:outline-none focus:border-brand-500"
+                                      style={{ userSelect: 'auto', WebkitUserSelect: 'auto' }}
+                                    />
+                                    <select
+                                      value={item?.group ?? ''}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => setGroup(addr.address, e.target.value)}
+                                      className="w-full sm:w-36 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
+                                                 text-white text-sm focus:outline-none focus:border-brand-500"
+                                    >
+                                      <option value="">No group</option>
+                                      {sortedGroups.map((g) => (
+                                        <option key={g} value={g}>{g}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <p className="text-zinc-500 text-xs mb-1.5 flex items-center gap-1">
+                                      <Link2Off className="w-3 h-3" strokeWidth={1.75} />
+                                      Response address (for state feedback)
+                                    </p>
+                                    <ResponseAddressPicker
+                                      commandAddress={addr.address}
+                                      responseAddress={item?.responseAddress}
+                                      allAddresses={addresses}
+                                      onSelect={(ra) => setResponseAddress(addr.address, ra)}
+                                      onClear={() => setResponseAddress(addr.address, undefined)}
+                                    />
+                                  </div>
                                 </div>
                               )}
                             </div>
