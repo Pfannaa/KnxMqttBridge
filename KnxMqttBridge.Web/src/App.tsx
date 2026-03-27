@@ -38,7 +38,7 @@ export default function App() {
     config.settings.topicPrefix,
   ]);
 
-  const { connected, error, values, publish } = useMqtt(mqttSettings);
+  const { connected, error, values, publish } = useMqtt(loading ? null : mqttSettings);
 
   useEffect(() => {
     Promise.all([
