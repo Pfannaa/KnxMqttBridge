@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { Flame, LayoutDashboard, SlidersHorizontal, Settings, Wifi, WifiOff } from 'lucide-react';
 
 interface Props {
   connected: boolean;
@@ -8,49 +9,52 @@ interface Props {
 }
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: '⚡' },
-  { to: '/configure', label: 'Konfigurieren', icon: '⚙' },
-  { to: '/settings', label: 'Einstellungen', icon: '🔧' },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/configure', label: 'Configure', icon: SlidersHorizontal },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function NavBar({ connected, error, host, port }: Props) {
   return (
-    <nav className="bg-slate-900 border-b border-slate-700 px-4">
-      <div className="flex items-center h-16 gap-1">
-        <div className="flex items-center gap-3 mr-6">
-          <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">FF</span>
-          </div>
-          <span className="text-white font-bold text-lg hidden sm:block">KNX Steuerung</span>
+    <nav className="bg-zinc-900 border-b border-zinc-800 px-4">
+      <div className="flex items-center h-14 gap-1">
+        <div className="flex items-center gap-2 mr-6">
+          <Flame className="w-6 h-6 text-brand-500" strokeWidth={2} />
+          <span className="text-white font-semibold text-base hidden sm:block tracking-tight">KNX Control</span>
         </div>
 
-        <div className="flex gap-1">
-          {navItems.map(({ to, label, icon }) => (
+        <div className="flex gap-0.5">
+          {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 h-10 rounded-lg text-sm font-medium transition-colors
+                `flex items-center gap-2 px-3 h-9 rounded-md text-sm font-medium transition-colors
                 ${isActive
-                  ? 'bg-brand-600 text-white'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-zinc-800 text-white'
+                  : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100'
                 }`
               }
             >
-              <span>{icon}</span>
+              <Icon className="w-4 h-4 shrink-0" strokeWidth={1.75} />
               <span className="hidden sm:block">{label}</span>
             </NavLink>
           ))}
         </div>
 
-        <div className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-lg border border-slate-700"
-             title={!connected && error ? error : `${host}:${port}`}>
-          <span className={`w-2 h-2 rounded-full shrink-0 ${connected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
-          <span className="text-sm text-slate-300 hidden sm:block">
-            {connected ? 'Verbunden' : 'Getrennt'}
+        <div
+          className="ml-auto flex items-center gap-2 px-2.5 py-1.5 rounded-md"
+          title={!connected && error ? error : `${host}:${port}`}
+        >
+          {connected
+            ? <Wifi className="w-4 h-4 text-green-500 shrink-0" strokeWidth={1.75} />
+            : <WifiOff className="w-4 h-4 text-red-400 animate-pulse shrink-0" strokeWidth={1.75} />
+          }
+          <span className={`text-sm hidden sm:block ${connected ? 'text-zinc-300' : 'text-red-400'}`}>
+            {connected ? 'Connected' : 'Disconnected'}
           </span>
-          <span className="text-xs text-slate-500 hidden md:block">{host}:{port}</span>
+          <span className="text-sm text-zinc-500 hidden md:block">{host}:{port}</span>
         </div>
       </div>
     </nav>

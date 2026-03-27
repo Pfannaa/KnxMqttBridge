@@ -16,6 +16,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { ClipboardList } from 'lucide-react';
 import { AddressCard } from '../components/AddressCard';
 import type { DashboardItem, UiConfig } from '../types';
 
@@ -156,20 +157,20 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
     <div className="flex flex-col h-full">
       {/* Tab bar */}
       {groups.length > 0 && (
-        <div className="relative flex bg-slate-900 border-b border-slate-700">
+        <div className="relative flex items-center bg-zinc-900 border-b border-zinc-800 px-2">
           {canScrollLeft && (
             <button
               onClick={() => scrollTabs('left')}
-              className="shrink-0 w-8 text-lg font-bold text-slate-300 hover:text-white
-                         bg-gradient-to-r from-slate-900 via-slate-900 to-transparent z-10"
-              aria-label="Nach links scrollen"
+              className="shrink-0 w-7 text-base font-bold text-zinc-500 hover:text-zinc-200
+                         bg-gradient-to-r from-zinc-900 via-zinc-900 to-transparent z-10 self-stretch flex items-center justify-center"
+              aria-label="Scroll left"
             >
               ‹
             </button>
           )}
           <div
             ref={tabBarRef}
-            className="flex overflow-x-auto"
+            className="flex overflow-x-auto gap-1 py-2"
             style={{ scrollbarWidth: 'none' }}
             onWheel={(e) => {
               if (e.deltaY !== 0) {
@@ -182,10 +183,10 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
               <button
                 key={group}
                 onClick={(e) => handleTabClick(group, e.currentTarget)}
-                className={`px-4 py-3 text-sm font-medium whitespace-nowrap shrink-0 border-b-2 transition-colors ${
+                className={`px-3 h-9 text-sm font-medium whitespace-nowrap shrink-0 rounded-md transition-colors ${
                   group === activeGroup
-                    ? 'border-brand-500 text-white'
-                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                    ? 'bg-zinc-800 text-white'
+                    : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100'
                 }`}
               >
                 {group}
@@ -195,9 +196,9 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
           {canScrollRight && (
             <button
               onClick={() => scrollTabs('right')}
-              className="shrink-0 w-8 text-lg font-bold text-slate-300 hover:text-white
-                         bg-gradient-to-l from-slate-900 via-slate-900 to-transparent z-10"
-              aria-label="Nach rechts scrollen"
+              className="shrink-0 w-7 text-base font-bold text-zinc-500 hover:text-zinc-200
+                         bg-gradient-to-l from-zinc-900 via-zinc-900 to-transparent z-10 self-stretch flex items-center justify-center"
+              aria-label="Scroll right"
             >
               ›
             </button>
@@ -207,18 +208,21 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
+        {activeGroup && activeItems.length > 0 && (
+          <h1 className="text-2xl font-bold text-white mb-5">{activeGroup}</h1>
+        )}
         {activeItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <div className="text-5xl">📋</div>
-            <p className="text-slate-300 text-lg font-medium">
-              {orderedItems.length === 0 ? 'Keine Elemente konfiguriert' : 'Keine Elemente in dieser Gruppe'}
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+            <ClipboardList className="w-10 h-10 text-zinc-600" strokeWidth={1.25} />
+            <p className="text-zinc-300 font-medium">
+              {orderedItems.length === 0 ? 'No items configured' : 'No items in this group'}
             </p>
-            <p className="text-slate-500 text-sm">
-              Gehe zu{' '}
-              <Link to="/configure" className="text-brand-500 underline">
-                Konfigurieren
+            <p className="text-zinc-500 text-sm">
+              Go to{' '}
+              <Link to="/configure" className="text-brand-500 underline underline-offset-2">
+                Configure
               </Link>{' '}
-              um KNX-Adressen dieser Gruppe zuzuweisen.
+              to assign KNX addresses to this group.
             </p>
           </div>
         ) : (

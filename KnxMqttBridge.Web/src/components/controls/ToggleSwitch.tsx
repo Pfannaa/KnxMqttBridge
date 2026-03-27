@@ -11,10 +11,10 @@ export function ToggleSwitch({ value, onToggle }: Props) {
       <button
         className={`
           relative w-20 h-11 rounded-full transition-colors duration-200 focus:outline-none overflow-hidden
-          ${isOn ? 'bg-green-500' : 'bg-slate-600'}
+          ${isOn ? 'bg-green-500' : 'bg-zinc-600'}
         `}
         onClick={() => onToggle(isOn ? 0 : 1)}
-        aria-label={isOn ? 'Ausschalten' : 'Einschalten'}
+        aria-label={isOn ? 'Turn off' : 'Turn on'}
       >
         <span
           className={`
@@ -24,8 +24,8 @@ export function ToggleSwitch({ value, onToggle }: Props) {
           `}
         />
       </button>
-      <span className={`text-sm font-semibold tracking-wide ${isOn ? 'text-green-400' : 'text-slate-400'}`}>
-        {isOn ? 'EIN' : 'AUS'}
+      <span className={`text-sm font-semibold tracking-wide ${isOn ? 'text-green-400' : 'text-zinc-400'}`}>
+        {isOn ? 'ON' : 'OFF'}
       </span>
     </div>
   );

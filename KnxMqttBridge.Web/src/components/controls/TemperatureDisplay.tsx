@@ -8,7 +8,7 @@ export function TemperatureDisplay({ value }: Props) {
   return (
     <div className="flex flex-col items-center gap-1">
       <span className="text-4xl font-bold text-white tabular-nums">{temp}</span>
-      <span className="text-slate-400 text-base">°C</span>
+      <span className="text-zinc-400 text-base">°C</span>
     </div>
   );
 }
