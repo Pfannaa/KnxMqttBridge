@@ -1,12 +1,19 @@
 import { NavLink } from 'react-router-dom';
 
+interface Props {
+  connected: boolean;
+  error: string | null;
+  host: string;
+  port: number;
+}
+
 const navItems = [
   { to: '/', label: 'Dashboard', icon: '⚡' },
   { to: '/configure', label: 'Konfigurieren', icon: '⚙' },
   { to: '/settings', label: 'Einstellungen', icon: '🔧' },
 ];
 
-export function NavBar() {
+export function NavBar({ connected, error, host, port }: Props) {
   return (
     <nav className="bg-slate-900 border-b border-slate-700 px-4">
       <div className="flex items-center h-16 gap-1">
@@ -35,6 +42,15 @@ export function NavBar() {
               <span className="hidden sm:block">{label}</span>
             </NavLink>
           ))}
+        </div>
+
+        <div className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-lg border border-slate-700"
+             title={!connected && error ? error : `${host}:${port}`}>
+          <span className={`w-2 h-2 rounded-full shrink-0 ${connected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+          <span className="text-sm text-slate-300 hidden sm:block">
+            {connected ? 'Verbunden' : 'Getrennt'}
+          </span>
+          <span className="text-xs text-slate-500 hidden md:block">{host}:{port}</span>
         </div>
       </div>
     </nav>

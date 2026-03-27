@@ -96,7 +96,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="flex flex-col h-screen bg-slate-950 text-white overflow-hidden">
-        <NavBar />
+        <NavBar
+          connected={connected}
+          error={error}
+          host={config.settings.mqttBrokerHost}
+          port={config.settings.mqttWebSocketPort}
+        />
         <main className="flex-1 overflow-hidden">
           <Routes>
             <Route
@@ -105,9 +110,6 @@ export default function App() {
                 <Dashboard
                   items={dashboardItems}
                   values={values}
-                  connected={connected}
-                  mqttError={error}
-                  settings={config.settings}
                   onPublish={publish}
                   onReorder={(uiConfig) => saveConfig({ uiConfig })}
                   uiConfig={config.uiConfig}
