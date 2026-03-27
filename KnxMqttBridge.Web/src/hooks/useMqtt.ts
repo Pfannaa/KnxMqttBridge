@@ -13,9 +13,7 @@ export function useMqtt(settings: FrontendSettings | null) {
     if (!settings) return;
 
     topicPrefixRef.current = settings.topicPrefix;
-
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const url = `${protocol}://${settings.mqttBrokerHost}:${settings.mqttWebSocketPort}/mqtt`;
+    const url = `mqtt://${settings.mqttBrokerHost}:${settings.mqttWebSocketPort}`;
 
     let client: ReturnType<typeof mqtt.connect>;
     try {

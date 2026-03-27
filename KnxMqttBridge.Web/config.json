@@ -1,6 +1,5 @@
 {
   "settings": {
-    "xmlUrl": "/GroupAddresses.xml",
     "mqttBrokerHost": "192.168.1.42",
     "mqttWebSocketPort": 31901,
     "mqttUsername": "",
