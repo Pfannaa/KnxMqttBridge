@@ -24,19 +24,22 @@
         "address": "2/1/71",
         "label": "B\u00FCro Decke Licht s",
         "group": "B\u00FCro",
-        "order": 0
+        "order": 0,
+        "responseAddress": "2/1/75"
       },
       {
         "address": "2/1/91",
         "label": "K\u00FCche Decke Licht s",
         "group": "K\u00FCche",
-        "order": 1
+        "order": 1,
+        "responseAddress": "2/1/95"
       },
       {
         "address": "2/1/81",
         "label": "K\u00FCche Oberschrank Licht s",
         "group": "K\u00FCche",
-        "order": 2
+        "order": 2,
+        "responseAddress": "2/1/85"
       },
       {
         "address": "2/1/92",
@@ -48,7 +51,8 @@
         "address": "2/1/93",
         "label": "K\u00FCche Decke Licht w",
         "group": "K\u00FCche",
-        "order": 4
+        "order": 4,
+        "responseAddress": "2/1/94"
       },
       {
         "address": "1/0/1",
@@ -60,7 +64,8 @@
         "address": "2/1/111",
         "label": "Wohnen Decke Licht s",
         "group": "Wohnzimmer",
-        "order": 6
+        "order": 6,
+        "responseAddress": "2/1/115"
       },
       {
         "address": "2/1/112",
@@ -72,13 +77,15 @@
         "address": "2/1/113",
         "label": "Wohnen Decke Licht w",
         "group": "Wohnzimmer",
-        "order": 8
+        "order": 8,
+        "responseAddress": "2/1/114"
       },
       {
         "address": "2/1/1",
         "label": "Gang Eingang Licht s",
         "group": "Eingang",
-        "order": 9
+        "order": 9,
+        "responseAddress": "2/1/5"
       },
       {
         "address": "2/1/2",
@@ -90,7 +97,8 @@
         "address": "2/1/3",
         "label": "Gang Eingang Licht w",
         "group": "Eingang",
-        "order": 11
+        "order": 11,
+        "responseAddress": "2/1/4"
       },
       {
         "address": "1/0/2",
@@ -122,7 +130,8 @@
         "address": "2/1/33",
         "label": "Eltern Licht Bett w",
         "group": "Schlafzimmer",
-        "order": 16
+        "order": 16,
+        "responseAddress": "2/1/34"
       },
       {
         "address": "2/1/32",
@@ -134,13 +143,15 @@
         "address": "2/1/31",
         "label": "Eltern Licht Bett s",
         "group": "Schlafzimmer",
-        "order": 18
+        "order": 18,
+        "responseAddress": "2/1/35"
       },
       {
         "address": "2/1/23",
         "label": "Eltern Licht Kasten w",
         "group": "Schlafzimmer",
-        "order": 19
+        "order": 19,
+        "responseAddress": "2/1/24"
       },
       {
         "address": "2/1/22",
@@ -152,25 +163,29 @@
         "address": "2/1/21",
         "label": "Eltern Licht Kasten s",
         "group": "Schlafzimmer",
-        "order": 21
+        "order": 21,
+        "responseAddress": "2/1/25"
       },
       {
         "address": "2/1/51",
         "label": "Bad Decke Licht s",
         "group": "Bad",
-        "order": 22
+        "order": 22,
+        "responseAddress": "2/1/55"
       },
       {
         "address": "2/1/61",
         "label": "Bad Spiegelschrank Licht s",
         "group": "Bad",
-        "order": 23
+        "order": 23,
+        "responseAddress": "2/1/65"
       },
       {
         "address": "2/1/43",
         "label": "Kind Decke Licht w",
         "group": "Kinderzimmer",
-        "order": 24
+        "order": 24,
+        "responseAddress": "2/1/44"
       },
       {
         "address": "2/1/42",
@@ -182,13 +197,15 @@
         "address": "2/1/41",
         "label": "Kind Decke Licht s",
         "group": "Kinderzimmer",
-        "order": 26
+        "order": 26,
+        "responseAddress": "2/1/45"
       },
       {
         "address": "2/1/103",
         "label": "Essen Decke Licht w",
         "group": "Wohnzimmer",
-        "order": 27
+        "order": 27,
+        "responseAddress": "2/1/104"
       },
       {
         "address": "2/1/102",
@@ -200,13 +217,15 @@
         "address": "2/1/101",
         "label": "Essen Decke Licht s",
         "group": "Wohnzimmer",
-        "order": 29
+        "order": 29,
+        "responseAddress": "2/1/105"
       },
       {
         "address": "2/1/121",
         "label": "Wohnzimmer Zentral s",
         "group": "Wohnzimmer",
-        "order": 30
+        "order": 30,
+        "responseAddress": "2/1/125"
       }
     ]
   }

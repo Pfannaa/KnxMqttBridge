@@ -7,7 +7,7 @@ export function DimmerControl({ onDim, onStop }: Props) {
   return (
     <div className="flex gap-4 items-center w-full">
       <button
-        className="flex-1 h-16 bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500 rounded-xl
+        className="flex-1 h-16 bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500 active:scale-95 rounded-xl
                    text-white font-bold text-3xl transition-colors select-none
                    flex items-center justify-center"
         onPointerDown={() => onDim('down')}
@@ -19,7 +19,7 @@ export function DimmerControl({ onDim, onStop }: Props) {
       </button>
 
       <button
-        className="flex-1 h-16 bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500 rounded-xl
+        className="flex-1 h-16 bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500 active:scale-95 rounded-xl
                    text-white font-bold text-3xl transition-colors select-none
                    flex items-center justify-center"
         onPointerDown={() => onDim('up')}
