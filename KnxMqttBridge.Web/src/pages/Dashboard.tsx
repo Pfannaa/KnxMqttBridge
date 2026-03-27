@@ -71,6 +71,8 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
   }, []);
 
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
   const scrollTabs = (dir: 'left' | 'right') => {
     tabBarRef.current?.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
   };
@@ -96,6 +98,27 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
     return ordered;
   }, [grouped, uiConfig.groups]);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipeStart.current = { x: t.clientX, y: t.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!swipeStart.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeStart.current.x;
+    const dy = t.clientY - swipeStart.current.y;
+    swipeStart.current = null;
+
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+    setActiveGroup((current) => {
+      const idx = groups.indexOf(current ?? '');
+      if (dx < 0) return groups[Math.min(idx + 1, groups.length - 1)];
+      return groups[Math.max(idx - 1, 0)];
+    });
+  }, [groups]);
+
   useEffect(() => {
     const el = tabBarRef.current;
     if (!el) return;
@@ -108,6 +131,13 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
       ro.disconnect();
     };
   }, [groups, updateScrollButtons]);
+
+  // Scroll active tab into view whenever it changes (e.g. via swipe)
+  useEffect(() => {
+    if (!activeGroup || !tabBarRef.current) return;
+    const btn = tabBarRef.current.querySelector<HTMLElement>(`[data-group="${activeGroup}"]`);
+    btn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [activeGroup]);
 
   // Keep activeGroup valid when groups change
   useEffect(() => {
@@ -182,6 +212,7 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
             {groups.map((group) => (
               <button
                 key={group}
+                data-group={group}
                 onClick={(e) => handleTabClick(group, e.currentTarget)}
                 className={`px-3 h-9 text-sm font-medium whitespace-nowrap shrink-0 rounded-md transition-colors ${
                   group === activeGroup
@@ -207,7 +238,7 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {activeGroup && activeItems.length > 0 && (
           <h1 className="text-2xl font-bold text-white mb-5">{activeGroup}</h1>
         )}

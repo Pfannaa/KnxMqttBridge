@@ -20,6 +20,13 @@ function getDptFamily(dpt: string | null): string {
   return match ? match[1] : 'unknown';
 }
 
+function isActiveValue(dpt: string | null, value: unknown): boolean {
+  const family = getDptFamily(dpt);
+  if (family === '1') return value === 1 || value === true;
+  if (family === '5') return typeof value === 'number' && value > 0;
+  return false;
+}
+
 function renderControl(item: DashboardItem, value: unknown, onPublish: (address: string, v: unknown) => void) {
   const family = getDptFamily(item.dpt);
 
@@ -40,8 +47,11 @@ function renderControl(item: DashboardItem, value: unknown, onPublish: (address:
 }
 
 export function AddressCard({ item, value, onPublish, dragHandleProps }: Props) {
+  const active = isActiveValue(item.dpt, value);
   return (
-    <div className="bg-zinc-800/60 rounded-xl p-4 flex flex-col gap-3">
+    <div className={`bg-zinc-800/60 rounded-xl p-4 flex flex-col gap-3 transition-colors duration-300 border-l-2 ${
+      active ? 'border-brand-500/50' : 'border-transparent'
+    }`}>
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-1.5">
           {dragHandleProps && (
