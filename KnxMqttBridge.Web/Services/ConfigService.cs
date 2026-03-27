@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using KnxMqttBridge.Web.Infrastructure;
 using KnxMqttBridge.Web.Models;
 using Microsoft.Extensions.Options;
@@ -11,7 +12,8 @@ public class ConfigService(IOptions<WebConfiguration> options)
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     private string ConfigPath => options.Value.ConfigPath;
