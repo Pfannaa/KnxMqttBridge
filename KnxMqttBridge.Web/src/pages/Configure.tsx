@@ -205,7 +205,7 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                               </div>
 
                               {isSelected && (
-                                <div className="px-3 pb-3 pt-0 pl-12 flex gap-2">
+                                <div className="px-3 pb-3 pt-0 pl-3 sm:pl-12 flex flex-col sm:flex-row gap-2">
                                   <input
                                     type="text"
                                     value={item?.label ?? addr.name}
@@ -220,7 +220,7 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                                     value={item?.group ?? ''}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={(e) => setGroup(addr.address, e.target.value)}
-                                    className="w-36 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5
+                                    className="w-full sm:w-36 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5
                                                text-white text-sm focus:outline-none focus:border-brand-500"
                                   >
                                     <option value="">Keine Gruppe</option>

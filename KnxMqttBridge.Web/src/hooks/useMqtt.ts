@@ -4,6 +4,7 @@ import type { FrontendSettings } from '../types';
 
 export function useMqtt(settings: FrontendSettings | null) {
   const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const clientRef = useRef<ReturnType<typeof mqtt.connect> | null>(null);
   const topicPrefixRef = useRef('knx');
@@ -31,11 +32,15 @@ export function useMqtt(settings: FrontendSettings | null) {
 
     client.on('connect', () => {
       setConnected(true);
+      setError(null);
       client.subscribe(`${settings.topicPrefix}/GroupAddresses/#`);
     });
 
     client.on('disconnect', () => setConnected(false));
-    client.on('error', () => setConnected(false));
+    client.on('error', (err) => {
+      setConnected(false);
+      setError(err.message);
+    });
     client.on('offline', () => setConnected(false));
 
     client.on('message', (topic: string, payload: Buffer) => {
@@ -71,5 +76,5 @@ export function useMqtt(settings: FrontendSettings | null) {
     setValues((prev) => ({ ...prev, [address]: value }));
   }, []);
 
-  return { connected, values, publish };
+  return { connected, error, values, publish };
 }
