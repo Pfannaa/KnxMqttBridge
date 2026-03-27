@@ -138,8 +138,8 @@ export function Settings({ settings, onSave }: Props) {
                         </p>
                         <pre className="bg-slate-900 rounded-lg p-3 text-xs text-green-400 overflow-x-auto">
                             {`listener 9001
-                            protocol websockets
-                            allow_anonymous true`}
+protocol websockets
+allow_anonymous true`}
                         </pre>
                     </section>
                 </div>
