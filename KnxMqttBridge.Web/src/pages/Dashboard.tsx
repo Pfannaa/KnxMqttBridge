@@ -53,13 +53,14 @@ interface Props {
   items: DashboardItem[];
   values: Record<string, unknown>;
   connected: boolean;
+  mqttError: string | null;
   settings: FrontendSettings;
   onPublish: (address: string, value: unknown) => void;
   onReorder: (config: UiConfig) => void;
   uiConfig: UiConfig;
 }
 
-export function Dashboard({ items, values, connected, settings, onPublish, onReorder, uiConfig }: Props) {
+export function Dashboard({ items, values, connected, mqttError, settings, onPublish, onReorder, uiConfig }: Props) {
   const [orderedItems, setOrderedItems] = useState(items);
 
   // Sync when items change from outside (e.g. after configure)
@@ -104,6 +105,7 @@ export function Dashboard({ items, values, connected, settings, onPublish, onReo
       <div className="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-700">
         <ConnectionStatus
           connected={connected}
+          error={mqttError}
           host={settings.mqttBrokerHost}
           port={settings.mqttWebSocketPort}
         />

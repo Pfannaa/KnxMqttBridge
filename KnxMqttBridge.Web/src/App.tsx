@@ -38,7 +38,7 @@ export default function App() {
     config.settings.topicPrefix,
   ]);
 
-  const { connected, values, publish } = useMqtt(mqttSettings);
+  const { connected, error, values, publish } = useMqtt(mqttSettings);
 
   useEffect(() => {
     Promise.all([
@@ -106,6 +106,7 @@ export default function App() {
                   items={dashboardItems}
                   values={values}
                   connected={connected}
+                  mqttError={error}
                   settings={config.settings}
                   onPublish={publish}
                   onReorder={(uiConfig) => saveConfig({ uiConfig })}
