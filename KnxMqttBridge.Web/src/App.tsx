@@ -81,6 +81,7 @@ export default function App() {
         order: item.order,
         category: meta.category,
         subcategory: meta.subcategory,
+        responseAddress: item.responseAddress,
       };
     })
     .filter((item): item is DashboardItem => item !== null)

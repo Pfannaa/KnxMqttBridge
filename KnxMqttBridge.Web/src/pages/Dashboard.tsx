@@ -267,7 +267,7 @@ export function Dashboard({ items, values, onPublish, onReorder, uiConfig }: Pro
                   <SortableCard
                     key={item.address}
                     item={item}
-                    value={values[item.address]}
+                    value={values[item.responseAddress ?? item.address]}
                     onPublish={onPublish}
                   />
                 ))}

@@ -11,6 +11,7 @@ export interface UiConfigItem {
   label?: string;
   group?: string;
   order: number;
+  responseAddress?: string;
 }
 
 export interface UiConfig {
@@ -43,4 +44,5 @@ export interface DashboardItem {
   order: number;
   category: string;
   subcategory: string;
+  responseAddress?: string;
 }
