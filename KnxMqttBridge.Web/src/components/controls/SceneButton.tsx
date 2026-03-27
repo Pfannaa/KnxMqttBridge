@@ -24,7 +24,7 @@ export function SceneButton({ onActivate }: Props) {
       `}
       onClick={handleClick}
     >
-      {triggered ? '✓ Aktiviert' : 'Szene auslösen'}
+      {triggered ? 'Activated' : 'Trigger scene'}
     </button>
   );
 }

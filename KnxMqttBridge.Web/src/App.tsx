@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { NavBar } from './components/NavBar';
 import { Dashboard } from './pages/Dashboard';
@@ -87,16 +88,22 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-950 text-slate-400">
-        Lade...
+      <div className="flex items-center justify-center gap-3 h-screen bg-zinc-950 text-zinc-500">
+        <Loader2 className="w-5 h-5 animate-spin" strokeWidth={1.75} />
+        <span className="text-sm">Loading...</span>
       </div>
     );
   }
 
   return (
     <BrowserRouter>
-      <div className="flex flex-col h-screen bg-slate-950 text-white overflow-hidden">
-        <NavBar />
+      <div className="flex flex-col h-screen bg-zinc-950 text-white overflow-hidden">
+        <NavBar
+          connected={connected}
+          error={error}
+          host={config.settings.mqttBrokerHost}
+          port={config.settings.mqttWebSocketPort}
+        />
         <main className="flex-1 overflow-hidden">
           <Routes>
             <Route
@@ -105,9 +112,6 @@ export default function App() {
                 <Dashboard
                   items={dashboardItems}
                   values={values}
-                  connected={connected}
-                  mqttError={error}
-                  settings={config.settings}
                   onPublish={publish}
                   onReorder={(uiConfig) => saveConfig({ uiConfig })}
                   uiConfig={config.uiConfig}

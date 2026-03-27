@@ -1,5 +1,58 @@
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, X, Check } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import type { KnxAddress, UiConfig, UiConfigItem } from '../types';
+
+function SortableGroupRow({ name, onRemove }: { name: string; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: name });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 bg-zinc-800/60 rounded-lg px-3 py-2"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="w-4 h-4" strokeWidth={1.75} />
+      </button>
+      <span className="flex-1 text-zinc-200 text-sm">{name}</span>
+      <button
+        onClick={onRemove}
+        className="text-zinc-600 hover:text-red-400 transition-colors"
+        aria-label={`Remove ${name}`}
+      >
+        <X className="w-4 h-4" strokeWidth={1.75} />
+      </button>
+    </div>
+  );
+}
 
 interface Props {
   addresses: KnxAddress[];
@@ -36,6 +89,23 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
     }
     return map;
   }, [addresses, search]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
+
+  const handleGroupDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setGroups((prev) => {
+      const oldIndex = prev.indexOf(active.id as string);
+      const newIndex = prev.indexOf(over.id as string);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
+  const sortedGroups = useMemo(() => [...groups].sort((a, b) => a.localeCompare(b)), [groups]);
 
   const addGroup = () => {
     const name = newGroup.trim();
@@ -101,23 +171,23 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700">
+      <div className="flex items-center gap-3 px-4 py-3 bg-zinc-900 border-b border-zinc-700">
         <input
           type="text"
-          placeholder="Suche..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2
-                     text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500"
+          className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2
+                     text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-brand-500"
           style={{ userSelect: 'auto', WebkitUserSelect: 'auto' }}
         />
-        <span className="text-slate-500 text-sm whitespace-nowrap">{selected.size} ausgewählt</span>
+        <span className="text-zinc-500 text-sm whitespace-nowrap">{selected.size} selected</span>
         <button
           onClick={handleSave}
           className={`px-5 py-2 rounded-lg font-semibold text-sm transition-colors min-w-[100px]
             ${saved ? 'bg-green-600 text-white' : 'bg-brand-600 hover:bg-brand-500 text-white'}`}
         >
-          {saved ? '✓ Gespeichert' : 'Speichern'}
+          {saved ? <span className="flex items-center gap-1.5"><Check className="w-4 h-4" />Saved</span> : 'Save'}
         </button>
       </div>
 
@@ -125,56 +195,51 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
 
         {/* Group management */}
         <section>
-          <h2 className="text-brand-500 font-bold text-sm uppercase tracking-wider mb-3">Gruppen</h2>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {groups.map((g) => (
-              <div key={g} className="flex items-center gap-1 bg-slate-800 border border-slate-600
-                                      rounded-lg px-3 py-1.5">
-                <span className="text-white text-sm">{g}</span>
-                <button
-                  onClick={() => removeGroup(g)}
-                  className="text-slate-500 hover:text-red-400 text-lg leading-none ml-1"
-                  aria-label={`${g} entfernen`}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-            {groups.length === 0 && (
-              <p className="text-slate-500 text-sm">Noch keine Gruppen. Erstelle zuerst eine Gruppe.</p>
-            )}
-          </div>
+          <h2 className="text-zinc-200 font-semibold text-sm mb-3">Groups</h2>
+          {groups.length === 0 ? (
+            <p className="text-zinc-500 text-sm mb-3">No groups yet. Add one below.</p>
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+              <SortableContext items={groups} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-2 mb-3">
+                  {groups.map((g) => (
+                    <SortableGroupRow key={g} name={g} onRemove={() => removeGroup(g)} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
           <div className="flex gap-2">
             <input
               type="text"
               value={newGroup}
               onChange={(e) => setNewGroup(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addGroup()}
-              placeholder="Gruppenname..."
-              className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2
-                         text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500"
+              placeholder="Group name..."
+              className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2
+                         text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-brand-500"
               style={{ userSelect: 'auto', WebkitUserSelect: 'auto' }}
             />
             <button
               onClick={addGroup}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium"
+              className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium"
             >
-              + Hinzufügen
+              + Add
             </button>
           </div>
         </section>
 
         {/* Address list */}
         <section>
-          <h2 className="text-brand-500 font-bold text-sm uppercase tracking-wider mb-3">Adressen</h2>
+          <h2 className="text-zinc-200 font-semibold text-sm mb-3">Addresses</h2>
           <div className="space-y-6">
             {Array.from(xmlGrouped.entries()).map(([category, subcategories]) => (
               <div key={category}>
-                <h3 className="text-slate-300 font-semibold text-sm mb-2">{category}</h3>
+                <h3 className="text-zinc-300 font-semibold text-sm mb-2">{category}</h3>
                 <div className="space-y-4">
                   {Array.from(subcategories.entries()).map(([sub, addrs]) => (
                     <div key={sub}>
-                      {sub && <p className="text-slate-500 text-xs mb-1 pl-1">{sub}</p>}
+                      {sub && <p className="text-zinc-500 text-xs mb-1 pl-1">{sub}</p>}
                       <div className="space-y-1">
                         {addrs.map((addr) => {
                           const isSelected = selected.has(addr.address);
@@ -183,22 +248,22 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                             <div
                               key={addr.address}
                               className={`rounded-xl border transition-colors
-                                ${isSelected ? 'bg-slate-800 border-brand-600' : 'bg-slate-900 border-slate-700'}`}
+                                ${isSelected ? 'bg-zinc-800 border-brand-600' : 'bg-zinc-900 border-zinc-700'}`}
                             >
                               <div
                                 className="flex items-center gap-3 p-3 cursor-pointer"
                                 onClick={() => toggle(addr)}
                               >
                                 <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0
-                                  ${isSelected ? 'bg-brand-600 border-brand-600' : 'border-slate-600'}`}>
+                                  ${isSelected ? 'bg-brand-600 border-brand-600' : 'border-zinc-600'}`}>
                                   {isSelected && <span className="text-white text-xs">✓</span>}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-white text-sm font-medium truncate">{addr.name}</p>
-                                  <p className="text-slate-500 text-xs font-mono">{addr.address}</p>
+                                  <p className="text-zinc-500 text-xs font-mono">{addr.address}</p>
                                 </div>
                                 {addr.dpt && (
-                                  <span className="text-xs font-mono bg-slate-700 text-slate-300 px-2 py-0.5 rounded shrink-0">
+                                  <span className="text-xs font-mono bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded shrink-0">
                                     {addr.dpt}
                                   </span>
                                 )}
@@ -209,10 +274,10 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                                   <input
                                     type="text"
                                     value={item?.label ?? addr.name}
-                                    placeholder="Anzeigename..."
+                                    placeholder="Display name..."
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={(e) => setLabel(addr.address, e.target.value)}
-                                    className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5
+                                    className="flex-1 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
                                                text-white text-sm focus:outline-none focus:border-brand-500"
                                     style={{ userSelect: 'auto', WebkitUserSelect: 'auto' }}
                                   />
@@ -220,11 +285,11 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
                                     value={item?.group ?? ''}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={(e) => setGroup(addr.address, e.target.value)}
-                                    className="w-full sm:w-36 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5
+                                    className="w-full sm:w-36 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-1.5
                                                text-white text-sm focus:outline-none focus:border-brand-500"
                                   >
-                                    <option value="">Keine Gruppe</option>
-                                    {groups.map((g) => (
+                                    <option value="">No group</option>
+                                    {sortedGroups.map((g) => (
                                       <option key={g} value={g}>{g}</option>
                                     ))}
                                   </select>
@@ -241,7 +306,7 @@ export function Configure({ addresses, uiConfig, onSave }: Props) {
             ))}
 
             {xmlGrouped.size === 0 && (
-              <p className="text-center text-slate-500 py-12">Keine Adressen gefunden.</p>
+              <p className="text-center text-zinc-500 py-12">No addresses found.</p>
             )}
           </div>
         </section>

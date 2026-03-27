@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Navigation Concepts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: white; font-family: system-ui, sans-serif; padding: 24px; }
+  h1 { color: #94a3b8; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 32px; }
+  .concepts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+  .concept { display: flex; flex-direction: column; gap: 12px; }
+  .concept-label { font-size: 13px; font-weight: 700; color: #f97316; text-transform: uppercase; letter-spacing: 1px; }
+  .concept-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+  /* Phone frame */
+  .phone { background: #1e293b; border-radius: 16px; border: 2px solid #334155; overflow: hidden; width: 280px; height: 480px; display: flex; flex-direction: column; position: relative; }
+  .phone-status { background: #0f172a; padding: 6px 16px; display: flex; justify-content: space-between; font-size: 10px; color: #475569; }
+
+  /* NavBar */
+  .navbar { background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .navbar-title { font-size: 14px; font-weight: 700; color: #f97316; }
+  .navbar-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #94a3b8; }
+  .dot-green { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+  .dot-red { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Content area */
+  .content { flex: 1; overflow: hidden; background: #0f172a; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* Cards */
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+  .card-label { font-size: 12px; color: #e2e8f0; }
+  .card-addr { font-size: 10px; color: #475569; font-family: monospace; }
+  .toggle { width: 36px; height: 20px; background: #22c55e; border-radius: 10px; position: relative; }
+  .toggle-off { background: #334155; }
+  .toggle-knob { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+  .toggle-knob-off { right: auto; left: 2px; }
+  .temp-val { font-size: 16px; font-weight: 700; color: #f97316; }
+  .dim-bar { width: 80px; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+  .dim-fill { height: 100%; background: #f97316; border-radius: 4px; }
+  .group-header { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding: 4px 0 2px; }
+
+  /* ── Concept 1: Scrollable tabs ── */
+  .tabs-scroll { background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; overflow: hidden; position: relative; }
+  .tabs-scroll::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 24px; background: linear-gradient(to right, transparent, #0f172a); }
+  .tab { padding: 8px 14px; font-size: 12px; font-weight: 600; color: #64748b; white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #f97316; border-bottom-color: #f97316; }
+  .tab-faded { opacity: 0.5; }
+
+  /* ── Concept 2: More overflow ── */
+  .tabs-more { background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; align-items: stretch; }
+  .tab-more-btn { padding: 8px 10px; font-size: 12px; font-weight: 700; color: #64748b; margin-left: auto; background: #1e293b; border-left: 1px solid #1e293b; display: flex; align-items: center; }
+
+  /* ── Concept 3: Swipeable ── */
+  .swipe-header { background: #0f172a; border-bottom: 1px solid #1e293b; padding: 8px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .swipe-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+  .swipe-chevron { color: #475569; font-size: 12px; }
+  .dots { display: flex; gap: 5px; align-items: center; justify-content: center; padding: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #334155; }
+  .dot.active { background: #f97316; width: 18px; border-radius: 3px; }
+
+  /* ── Concept 4: Group picker sheet ── */
+  .picker-btn { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #e2e8f0; display: flex; align-items: center; gap: 6px; }
+  .picker-chevron { color: #64748b; font-size: 10px; }
+  .sheet { position: absolute; bottom: 0; left: 0; right: 0; background: #1e293b; border-top: 1px solid #334155; border-radius: 16px 16px 0 0; padding: 12px; z-index: 10; }
+  .sheet-handle { width: 32px; height: 3px; background: #334155; border-radius: 2px; margin: 0 auto 12px; }
+  .sheet-title { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .sheet-item { padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+  .sheet-item.active { background: #f9731620; color: #f97316; }
+  .sheet-item-count { font-size: 11px; color: #475569; font-weight: 400; }
+
+  /* Bottom nav */
+  .bottom-nav { background: #0f172a; border-top: 1px solid #1e293b; display: flex; }
+  .bottom-nav-item { flex: 1; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 9px; color: #475569; }
+  .bottom-nav-item.active { color: #f97316; }
+  .bottom-nav-icon { font-size: 16px; }
+</style>
+</head>
+<body>
+<h1>Dashboard Navigation Concepts</h1>
+
+<div class="concepts">
+
+  <!-- Concept 1: Scrollable Tabs -->
+  <div class="concept">
+    <div class="concept-label">1 — Scrollable Tabs</div>
+    <div class="concept-desc">Tabs scroll horizontally. Familiar pattern, works up to ~8 groups. Fades out on the right to hint at more.</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="navbar">
+        <div class="navbar-title">KNX Dashboard</div>
+        <div class="navbar-status"><div class="dot-green"></div><span>Verbunden</span></div>
+      </div>
+      <div class="tabs-scroll">
+        <div class="tab active">Wohnzimmer</div>
+        <div class="tab">Schlafzimmer</div>
+        <div class="tab tab-faded">Küche</div>
+        <div class="tab tab-faded">Garage</div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div><div class="card-label">Deckenlampe</div><div class="card-addr">1/1/1</div></div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Stehlampe</div><div class="card-addr">1/1/2</div></div>
+          <div class="toggle toggle-off"><div class="toggle-knob toggle-knob-off"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Dimmer</div><div class="card-addr">1/1/3</div></div>
+          <div class="dim-bar"><div class="dim-fill" style="width:65%"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Temperatur</div><div class="card-addr">1/2/1</div></div>
+          <div class="temp-val">21.5°</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bottom-nav-item active"><div class="bottom-nav-icon">⊞</div>Dashboard</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">⚙</div>Konfigurieren</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">≡</div>Einstellungen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 2: More overflow -->
+  <div class="concept">
+    <div class="concept-label">2 — "Mehr" Overflow</div>
+    <div class="concept-desc">First 3 groups as tabs, rest hidden behind "···". Scales to any number of groups, one extra tap for overflow.</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="navbar">
+        <div class="navbar-title">KNX Dashboard</div>
+        <div class="navbar-status"><div class="dot-green"></div><span>Verbunden</span></div>
+      </div>
+      <div class="tabs-more">
+        <div class="tab active">Wohnzimmer</div>
+        <div class="tab">Schlafen</div>
+        <div class="tab">Küche</div>
+        <div class="tab-more-btn">···</div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div><div class="card-label">Deckenlampe</div><div class="card-addr">1/1/1</div></div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Stehlampe</div><div class="card-addr">1/1/2</div></div>
+          <div class="toggle toggle-off"><div class="toggle-knob toggle-knob-off"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Dimmer</div><div class="card-addr">1/1/3</div></div>
+          <div class="dim-bar"><div class="dim-fill" style="width:65%"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Temperatur</div><div class="card-addr">1/2/1</div></div>
+          <div class="temp-val">21.5°</div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bottom-nav-item active"><div class="bottom-nav-icon">⊞</div>Dashboard</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">⚙</div>Konfigurieren</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">≡</div>Einstellungen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 3: Swipeable pages -->
+  <div class="concept">
+    <div class="concept-label">3 — Swipeable Pages</div>
+    <div class="concept-desc">Swipe left/right between groups. Dot indicator at bottom shows position. Very touch-friendly, low discoverability.</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="navbar">
+        <div class="navbar-title">KNX Dashboard</div>
+        <div class="navbar-status"><div class="dot-green"></div><span>Verbunden</span></div>
+      </div>
+      <div class="swipe-header">
+        <span class="swipe-chevron">‹</span>
+        <span class="swipe-title">Wohnzimmer</span>
+        <span class="swipe-chevron">›</span>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div><div class="card-label">Deckenlampe</div><div class="card-addr">1/1/1</div></div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Stehlampe</div><div class="card-addr">1/1/2</div></div>
+          <div class="toggle toggle-off"><div class="toggle-knob toggle-knob-off"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Dimmer</div><div class="card-addr">1/1/3</div></div>
+          <div class="dim-bar"><div class="dim-fill" style="width:65%"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Temperatur</div><div class="card-addr">1/2/1</div></div>
+          <div class="temp-val">21.5°</div>
+        </div>
+      </div>
+      <div class="dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bottom-nav-item active"><div class="bottom-nav-icon">⊞</div>Dashboard</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">⚙</div>Konfigurieren</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">≡</div>Einstellungen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 4: Group picker sheet -->
+  <div class="concept">
+    <div class="concept-label">4 — Gruppen-Picker</div>
+    <div class="concept-desc">Tap the group name to open a full list as a bottom sheet. Scales to any number, always one tap away.</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="navbar">
+        <div class="navbar-title">KNX Dashboard</div>
+        <div class="navbar-status"><div class="dot-green"></div><span>Verbunden</span></div>
+      </div>
+      <div style="background:#0f172a; border-bottom:1px solid #1e293b; padding:8px 16px; display:flex; align-items:center; gap:8px;">
+        <div class="picker-btn">Wohnzimmer <span class="picker-chevron">▾</span></div>
+        <div style="font-size:11px; color:#475569; margin-left:auto;">4 Elemente</div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div><div class="card-label">Deckenlampe</div><div class="card-addr">1/1/1</div></div>
+          <div class="toggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Stehlampe</div><div class="card-addr">1/1/2</div></div>
+          <div class="toggle toggle-off"><div class="toggle-knob toggle-knob-off"></div></div>
+        </div>
+        <div class="card">
+          <div><div class="card-label">Dimmer</div><div class="card-addr">1/1/3</div></div>
+          <div class="dim-bar"><div class="dim-fill" style="width:65%"></div></div>
+        </div>
+      </div>
+      <!-- Bottom sheet overlay -->
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Gruppe wählen</div>
+        <div class="sheet-item active">Wohnzimmer <span class="sheet-item-count">4 Elemente</span></div>
+        <div class="sheet-item">Schlafzimmer <span class="sheet-item-count">3 Elemente</span></div>
+        <div class="sheet-item">Küche <span class="sheet-item-count">5 Elemente</span></div>
+        <div class="sheet-item">Garage <span class="sheet-item-count">2 Elemente</span></div>
+        <div class="sheet-item">Heizung <span class="sheet-item-count">6 Elemente</span></div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bottom-nav-item active"><div class="bottom-nav-icon">⊞</div>Dashboard</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">⚙</div>Konfigurieren</div>
+        <div class="bottom-nav-item"><div class="bottom-nav-icon">≡</div>Einstellungen</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

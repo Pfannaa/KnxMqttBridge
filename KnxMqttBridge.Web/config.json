@@ -8,49 +8,347 @@
     "addressStyle": "ThreeLevel"
   },
   "uiConfig": {
-    "groups": [],
+    "groups": [
+      "System",
+      "K\u00FCche",
+      "B\u00FCro",
+      "Wohnzimmer",
+      "Eingang",
+      "Gang",
+      "Schlafzimmer",
+      "Bad",
+      "Kinderzimmer"
+    ],
     "items": [
       {
         "address": "2/1/71",
         "label": "B\u00FCro Decke Licht s",
-        "group": null,
+        "group": "B\u00FCro",
         "order": 0
-      },
-      {
-        "address": "2/1/92",
-        "label": "K\u00FCche Decke Licht d",
-        "group": null,
-        "order": 1
       },
       {
         "address": "2/1/91",
         "label": "K\u00FCche Decke Licht s",
-        "group": null,
+        "group": "K\u00FCche",
+        "order": 1
+      },
+      {
+        "address": "2/1/81",
+        "label": "K\u00FCche Oberschrank Licht s",
+        "group": "K\u00FCche",
         "order": 2
+      },
+      {
+        "address": "2/1/92",
+        "label": "K\u00FCche Decke Licht d",
+        "group": "K\u00FCche",
+        "order": 3
       },
       {
         "address": "2/1/93",
         "label": "K\u00FCche Decke Licht w",
-        "group": null,
-        "order": 3
+        "group": "K\u00FCche",
+        "order": 4
       },
       {
         "address": "2/1/94",
         "label": "K\u00FCche Decke Licht wr",
-        "group": null,
-        "order": 4
+        "group": "K\u00FCche",
+        "order": 5
       },
       {
         "address": "2/1/95",
         "label": "K\u00FCche Decke Licht sr",
-        "group": null,
-        "order": 5
+        "group": "K\u00FCche",
+        "order": 6
       },
       {
         "address": "1/0/1",
         "label": "Systemzeit wr",
-        "group": null,
-        "order": 6
+        "group": "System",
+        "order": 7
+      },
+      {
+        "address": "2/1/75",
+        "label": "B\u00FCro Decke Licht sr",
+        "group": "B\u00FCro",
+        "order": 8
+      },
+      {
+        "address": "2/1/111",
+        "label": "Wohnen Decke Licht s",
+        "group": "Wohnzimmer",
+        "order": 9
+      },
+      {
+        "address": "2/1/112",
+        "label": "Wohnen Decke Licht d",
+        "group": "Wohnzimmer",
+        "order": 10
+      },
+      {
+        "address": "2/1/113",
+        "label": "Wohnen Decke Licht w",
+        "group": "Wohnzimmer",
+        "order": 11
+      },
+      {
+        "address": "2/1/114",
+        "label": "Wohnen Decke Licht wr",
+        "group": "Wohnzimmer",
+        "order": 12
+      },
+      {
+        "address": "2/1/115",
+        "label": "Wohnen Decke Licht sr",
+        "group": "Wohnzimmer",
+        "order": 13
+      },
+      {
+        "address": "2/1/1",
+        "label": "Gang Eingang Licht s",
+        "group": "Eingang",
+        "order": 14
+      },
+      {
+        "address": "2/1/2",
+        "label": "Gang Eingang Licht d",
+        "group": "Eingang",
+        "order": 15
+      },
+      {
+        "address": "2/1/3",
+        "label": "Gang Eingang Licht w",
+        "group": "Eingang",
+        "order": 16
+      },
+      {
+        "address": "2/1/4",
+        "label": "Gang Eingang Licht wr",
+        "group": "Eingang",
+        "order": 17
+      },
+      {
+        "address": "2/1/5",
+        "label": "Gang Eingang Licht sr",
+        "group": "Eingang",
+        "order": 18
+      },
+      {
+        "address": "1/0/2",
+        "label": "Systemdatum wr",
+        "group": "System",
+        "order": 19
+      },
+      {
+        "address": "2/1/11",
+        "label": "Gang Licht s",
+        "group": "Gang",
+        "order": 20
+      },
+      {
+        "address": "2/1/12",
+        "label": "Gang Licht d",
+        "group": "Gang",
+        "order": 21
+      },
+      {
+        "address": "2/1/13",
+        "label": "Gang Licht w",
+        "group": "Gang",
+        "order": 22
+      },
+      {
+        "address": "2/1/14",
+        "label": "Gang Licht wr",
+        "group": "Gang",
+        "order": 23
+      },
+      {
+        "address": "2/1/15",
+        "label": "Gang Licht sr",
+        "group": "Gang",
+        "order": 24
+      },
+      {
+        "address": "2/1/35",
+        "label": "Eltern Licht Bett sr",
+        "group": "Schlafzimmer",
+        "order": 25
+      },
+      {
+        "address": "2/1/34",
+        "label": "Eltern Licht Bett wr",
+        "group": "Schlafzimmer",
+        "order": 26
+      },
+      {
+        "address": "2/1/33",
+        "label": "Eltern Licht Bett w",
+        "group": "Schlafzimmer",
+        "order": 27
+      },
+      {
+        "address": "2/1/32",
+        "label": "Eltern Licht Bett d",
+        "group": "Schlafzimmer",
+        "order": 28
+      },
+      {
+        "address": "2/1/31",
+        "label": "Eltern Licht Bett s",
+        "group": "Schlafzimmer",
+        "order": 29
+      },
+      {
+        "address": "2/1/25",
+        "label": "Eltern Licht Kasten sr",
+        "group": "Schlafzimmer",
+        "order": 30
+      },
+      {
+        "address": "2/1/24",
+        "label": "Eltern Licht Kasten wr",
+        "group": "Schlafzimmer",
+        "order": 31
+      },
+      {
+        "address": "2/1/23",
+        "label": "Eltern Licht Kasten w",
+        "group": "Schlafzimmer",
+        "order": 32
+      },
+      {
+        "address": "2/1/22",
+        "label": "Eltern Licht Kasten d",
+        "group": "Schlafzimmer",
+        "order": 33
+      },
+      {
+        "address": "2/1/21",
+        "label": "Eltern Licht Kasten s",
+        "group": "Schlafzimmer",
+        "order": 34
+      },
+      {
+        "address": "2/1/51",
+        "label": "Bad Decke Licht s",
+        "group": "Bad",
+        "order": 35
+      },
+      {
+        "address": "2/1/65",
+        "label": "Bad Spiegelschrank Licht sr",
+        "group": "Bad",
+        "order": 36
+      },
+      {
+        "address": "2/1/61",
+        "label": "Bad Spiegelschrank Licht s",
+        "group": "Bad",
+        "order": 37
+      },
+      {
+        "address": "2/1/55",
+        "label": "Bad Decke Licht sr",
+        "group": "Bad",
+        "order": 38
+      },
+      {
+        "address": "2/1/45",
+        "label": "Kind Decke Licht sr",
+        "group": "Kinderzimmer",
+        "order": 39
+      },
+      {
+        "address": "2/1/44",
+        "label": "Kind Decke Licht wr",
+        "group": "Kinderzimmer",
+        "order": 40
+      },
+      {
+        "address": "2/1/43",
+        "label": "Kind Decke Licht w",
+        "group": "Kinderzimmer",
+        "order": 41
+      },
+      {
+        "address": "2/1/42",
+        "label": "Kind Decke Licht d",
+        "group": "Kinderzimmer",
+        "order": 42
+      },
+      {
+        "address": "2/1/41",
+        "label": "Kind Decke Licht s",
+        "group": "Kinderzimmer",
+        "order": 43
+      },
+      {
+        "address": "2/1/85",
+        "label": "K\u00FCche Oberschrank Licht sr",
+        "group": "K\u00FCche",
+        "order": 44
+      },
+      {
+        "address": "2/1/105",
+        "label": "Essen Decke Licht sr",
+        "group": "Wohnzimmer",
+        "order": 45
+      },
+      {
+        "address": "2/1/104",
+        "label": "Essen Decke Licht wr",
+        "group": "Wohnzimmer",
+        "order": 46
+      },
+      {
+        "address": "2/1/103",
+        "label": "Essen Decke Licht w",
+        "group": "Wohnzimmer",
+        "order": 47
+      },
+      {
+        "address": "2/1/102",
+        "label": "Essen Decke Licht d",
+        "group": "Wohnzimmer",
+        "order": 48
+      },
+      {
+        "address": "2/1/101",
+        "label": "Essen Decke Licht s",
+        "group": "Wohnzimmer",
+        "order": 49
+      },
+      {
+        "address": "2/1/125",
+        "label": "Wohnzimmer Zentral sr",
+        "group": "Wohnzimmer",
+        "order": 50
+      },
+      {
+        "address": "2/1/124",
+        "label": "Wohnzimmer Zentral wr",
+        "group": "Wohnzimmer",
+        "order": 51
+      },
+      {
+        "address": "2/1/123",
+        "label": "Wohnzimmer Zentral w",
+        "group": "Wohnzimmer",
+        "order": 52
+      },
+      {
+        "address": "2/1/122",
+        "label": "Wohnzimmer Zentral d",
+        "group": "Wohnzimmer",
+        "order": 53
+      },
+      {
+        "address": "2/1/121",
+        "label": "Wohnzimmer Zentral s",
+        "group": "Wohnzimmer",
+        "order": 54
       }
     ]
   }

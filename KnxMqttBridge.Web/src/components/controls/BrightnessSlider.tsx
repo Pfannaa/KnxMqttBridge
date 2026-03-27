@@ -17,9 +17,9 @@ export function BrightnessSlider({ value, onSet }: Props) {
   return (
     <div className="flex flex-col gap-3 w-full px-2">
       <div className="flex justify-between items-center">
-        <span className="text-slate-400 text-sm">0%</span>
+        <span className="text-zinc-400 text-sm">0%</span>
         <span className="text-white font-bold text-xl">{localValue}%</span>
-        <span className="text-slate-400 text-sm">100%</span>
+        <span className="text-zinc-400 text-sm">100%</span>
       </div>
       <input
         type="range"
