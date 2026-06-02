@@ -652,7 +652,7 @@ Contributions welcome! Please:
 
 ## License
 
-[MIT / Apache 2.0 - Add your license here]
+[MIT]
 
 ---
 
@@ -660,7 +660,3 @@ Contributions welcome! Please:
 
 - 🐛 [Report issues](https://github.com/Pfannaa/KnxMqttBridge/issues)
 - 💬 [Discussions](https://github.com/Pfannaa/KnxMqttBridge/discussions)
-
----
-
-**Made with ❤️ for the KNX and Home Automation community**
