@@ -33,15 +33,27 @@ namespace KnxMqttBridge.Services
 
         public async Task StartListening(CancellationToken cancellationToken)
         {
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                _connectorParameters = await ResolveConnectorParametersAsync(cancellationToken);
-                await ConnectBusAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to start KNX service and connect to gateway");
-                throw;
+                try
+                {
+                    // Resolve on every attempt so a gateway that comes up later is still discovered
+                    _connectorParameters = await ResolveConnectorParametersAsync(cancellationToken);
+                    await ConnectBusAsync(cancellationToken);
+                    return;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    DisposeBus();
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to start KNX service and connect to gateway. Retrying in 5 seconds...");
+                    DisposeBus();
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
             }
         }
 
@@ -119,13 +131,7 @@ namespace KnxMqttBridge.Services
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5));
 
-                    if (_bus != null)
-                    {
-                        _bus.ConnectionStateChanged -= OnConnectionStateChanged;
-                        _bus.GroupMessageReceived -= OnGroupMessageReceived;
-                        _bus.Dispose();
-                        _bus = null;
-                    }
+                    DisposeBus();
 
                     try
                     {
@@ -208,19 +214,28 @@ namespace KnxMqttBridge.Services
         public void Dispose()
         {
             if (_disposed)
+            {
                 return;
+            }
 
             _disposed = true;
 
-            if (_bus != null)
-            {
-                _bus.ConnectionStateChanged -= OnConnectionStateChanged;
-                _bus.GroupMessageReceived -= OnGroupMessageReceived;
-                _bus.Dispose();
-                _bus = null;
-            }
+            DisposeBus();
 
             _reconnectGuard.Dispose();
+        }
+
+        private void DisposeBus()
+        {
+            if (_bus == null)
+            {
+                return;
+            }
+
+            _bus.ConnectionStateChanged -= OnConnectionStateChanged;
+            _bus.GroupMessageReceived -= OnGroupMessageReceived;
+            _bus.Dispose();
+            _bus = null;
         }
     }
 }

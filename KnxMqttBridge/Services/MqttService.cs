@@ -40,7 +40,7 @@ namespace KnxMqttBridge.Services
                 return;
             }
 
-            while (!IsConnected)
+            while (!IsConnected && !cancellationToken.IsCancellationRequested)
             {
                 try
                 {
@@ -65,29 +65,38 @@ namespace KnxMqttBridge.Services
                         _logger.LogError("Failed to connect to MQTT broker. Result: {Result}", result.ResultCode);
                     }
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error connecting to MQTT broker");
-                    _logger.LogInformation("Retrying connection in 5 seconds...");
+                }
 
+                if (!IsConnected)
+                {
+                    _logger.LogInformation("Retrying connection in 5 seconds...");
                     await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
                 }
             }
         }
 
-        public async Task DisconnectAsync(CancellationToken cancellationToken = default)
+        public Task DisconnectAsync(CancellationToken cancellationToken = default)
         {
             if (IsConnected)
             {
                 _disconnectingIntentionally = true;
                 _logger.LogInformation("Disconnecting from MQTT broker");
-                await _mqttClient.DisconnectAsync(cancellationToken: cancellationToken);
+                return _mqttClient.DisconnectAsync(cancellationToken: cancellationToken);
             }
+
+            return Task.CompletedTask;
         }
 
-        public async Task PublishAsync(string topic, string payload, bool retain = false, CancellationToken cancellationToken = default)
+        public Task PublishAsync(string topic, string payload, bool retain = false, CancellationToken cancellationToken = default)
         {
-            await PublishAsync(topic, Encoding.UTF8.GetBytes(payload), retain, cancellationToken);
+            return PublishAsync(topic, Encoding.UTF8.GetBytes(payload), retain, cancellationToken);
         }
 
         public async Task PublishAsync(string topic, byte[] payload, bool retain = false, CancellationToken cancellationToken = default)
@@ -192,13 +201,10 @@ namespace KnxMqttBridge.Services
 
         public async Task SubscribeAsync(string topic, CancellationToken cancellationToken = default)
         {
-            if (!IsConnected)
-            {
-                throw new InvalidOperationException("MQTT client is not connected");
-            }
-
             var fullTopic = string.IsNullOrEmpty(_config.Value.TopicPrefix) ? topic : $"{_config.Value.TopicPrefix}/{topic}";
 
+            // Register first so OnConnectedAsync restores the subscription on the next (re)connect,
+            // even if we're currently disconnected or the subscribe below fails.
             lock (_subscriptionsLock)
             {
                 if (!_subscriptions.Contains(fullTopic))
@@ -207,13 +213,32 @@ namespace KnxMqttBridge.Services
                 }
             }
 
+            if (!IsConnected)
+            {
+                _logger.LogInformation("MQTT client is not connected. Will subscribe to {Topic} once connected", fullTopic);
+                return;
+            }
+
             _logger.LogInformation("Subscribing to MQTT topic: {Topic}", fullTopic);
 
             var subscribeOptions = new MqttClientSubscribeOptionsBuilder()
                 .WithTopicFilter(fullTopic)
                 .Build();
 
-            var result = await _mqttClient.SubscribeAsync(subscribeOptions, cancellationToken);
+            MqttClientSubscribeResult result;
+            try
+            {
+                result = await _mqttClient.SubscribeAsync(subscribeOptions, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to subscribe to {Topic}. Will retry on next reconnect", fullTopic);
+                return;
+            }
 
             foreach (var item in result.Items)
             {
@@ -235,10 +260,7 @@ namespace KnxMqttBridge.Services
             try
             {
                 _logger.LogDebug("Received message on topic: {Topic}", args.ApplicationMessage.Topic);
-                if (MessageReceived != null)
-                {
-                    await MessageReceived.Invoke(args);
-                }
+                await MessageReceived.Invoke(args);
             }
             catch (Exception ex)
             {
