@@ -47,9 +47,13 @@ namespace KnxMqttBridge
             try
             {
                 await _mqttService.ConnectAsync(cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    return;
                 _mqttService.MessageReceived += MqttMessageReceived;
 
                 await _knxService.StartListening(cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    return;
                 _knxService.GroupMessageReceived += KnxGroupMessageReceived;
 
                 // Subscribe to command topics based on address style under GroupAddresses
@@ -66,10 +70,16 @@ namespace KnxMqttBridge
                 _logger.LogInformation("KNX-MQTT Bridge is running {ConfigStatus} in {AddressStyle} mode. Listening for KNX events and MQTT commands.",
                     configStatus, _knxConfiguration.AddressStyle);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("KNX-MQTT Bridge startup cancelled");
+            }
             catch (Exception ex)
             {
+                // MQTT and KNX connection failures are retried by their services; anything reaching
+                // here is unexpected (e.g. invalid configuration), so stop the application.
                 _logger.LogCritical(ex, "Failed to start KNX-MQTT Bridge. The application will terminate.");
-                throw; // Re-throw to stop the application
+                throw;
             }
         }
 
