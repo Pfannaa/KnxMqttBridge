@@ -3,7 +3,7 @@
 A bidirectional bridge between KNX and MQTT, enabling integration with home automation systems like Home Assistant, Node-RED or your own solution.
 
 This repo also contains a demo web project which has been heavily vibe coded, but that's just for demonstration purposes. 
-You can pull that via the web-x.x.x.x tags and deploy as a container besides the bridge and your broker of choice.
+You can pull that via `docker pull ghcr.io/pfannaa/knxmqttbridge-web:web-x.x.x.x` and deploy as a container besides the bridge and your broker of choice.
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![.NET Tests](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml)
