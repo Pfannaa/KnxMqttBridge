@@ -1,6 +1,9 @@
 # KNX-MQTT Bridge
 
-A bidirectional bridge between KNX (via Gira X1 Gateway) and MQTT, enabling integration with home automation systems like Home Assistant, Node-RED, and more.
+A bidirectional bridge between KNX and MQTT, enabling integration with home automation systems like Home Assistant, Node-RED or your own solution.
+
+This repo also contains a demo web project which has been heavily vibe coded, but that's just for demonstration purposes. 
+You can pull that via the web-x.x.x.x tags and deploy as a container besides the bridge and your broker of choice.
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![.NET Tests](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Pfannaa/KnxMqttBridge/actions/workflows/dotnet.yml)
@@ -12,17 +15,16 @@ A bidirectional bridge between KNX (via Gira X1 Gateway) and MQTT, enabling inte
 - ✅ **Bidirectional Communication** - Read KNX events → Publish to MQTT, Send MQTT commands → Write to KNX bus
 - ✅ **Comprehensive DPT Support** - Boolean, Brightness, Dimming Control (4-bit), Temperature, Scene Control, and more
 - ✅ **ETS Integration** - Import group addresses directly from ETS XML export with automatic DPT detection
-- ✅ **Docker Ready** - Easy deployment with docker-compose
 
 ---
 
 ## Quick Start
 
-### 1. Export Group Addresses from ETS
+### 1. Export Group Addresses from ETS if you want enhanced data packets in your MQTT Messages, this isn't necessary but advised
 
 1. Open your KNX project in **ETS 5 or ETS 6**
 2. Right-click **"Group Addresses"** → **"Export Group Addresses..."**
-3. Select **XML format** and enable **"Export with Data Point Types (DPT)"** ✅ **REQUIRED!**
+3. Select **XML format** and enable **"Export with Data Point Types (DPT)"**
 4. Save as `GroupAddresses.xml`
 
 ### 2. Configure the Bridge
@@ -348,7 +350,7 @@ mosquitto_pub -h localhost -t "knx/GroupAddresses/2/1/4/command" -m '{"Value":75
 
 ## Docker Deployment
 
-### Docker Compose (Recommended)
+### Docker Compose
 
 Create `docker-compose.yml`:
 
@@ -413,7 +415,7 @@ docker run -d \
   knx-mqtt-bridge:latest
 ```
 
-**Using relative paths (from current directory):**
+**Using relative paths:**
 ```bash
 docker run -d \
   --name knx-mqtt-bridge \
@@ -560,11 +562,6 @@ This is **normal** for your own commands - the gateway filters echo to prevent l
 - Check `--network host` is used in Docker
 - Ensure gateway has available tunneling slots (typically 4-5 max)
 
-**Can't connect to MQTT broker:**
-- Verify broker address and port
-- Check username/password
-- Test: `mosquitto_sub -h localhost -t "#" -v`
-
 ---
 
 ## Supported Data Point Types
@@ -594,21 +591,6 @@ This is **normal** for your own commands - the gateway filters echo to prevent l
 - **Payload:** Scene number `0` to `63`
 
 ---
-
-## Architecture
-
-```
-KnxMqttBridge/
-├── Models/              # Data models (DimCommand)
-├── Services/
-│   ├── Abstractions/    # Service interfaces
-│   ├── KnxService.cs    # KNX communication (auto-discovery)
-│   ├── MqttService.cs   # MQTT communication
-│   └── KnxDataPointService.cs  # DPT encoding/decoding logic
-├── Infrastructure/      # Configuration & XML models
-├── Worker.cs           # Main orchestration
-└── Program.cs          # Application entry point
-```
 
 **Technology Stack:**
 - .NET 10
@@ -652,7 +634,7 @@ Contributions welcome! Please:
 
 ## License
 
-[MIT / Apache 2.0 - Add your license here]
+[MIT]
 
 ---
 
@@ -660,7 +642,3 @@ Contributions welcome! Please:
 
 - 🐛 [Report issues](https://github.com/Pfannaa/KnxMqttBridge/issues)
 - 💬 [Discussions](https://github.com/Pfannaa/KnxMqttBridge/discussions)
-
----
-
-**Made with ❤️ for the KNX and Home Automation community**
