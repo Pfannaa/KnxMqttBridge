@@ -20,7 +20,7 @@ You can pull that via the web-x.x.x.x tags and deploy as a container besides the
 
 ## Quick Start
 
-### 1. Export Group Addresses from ETS if you want enhanced data packets in your MQTT Broker, this isn't necessary but advised
+### 1. Export Group Addresses from ETS if you want enhanced data packets in your MQTT Messages, this isn't necessary but advised
 
 1. Open your KNX project in **ETS 5 or ETS 6**
 2. Right-click **"Group Addresses"** → **"Export Group Addresses..."**
